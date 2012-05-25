@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup height="100%" width="100%" horizontalAlign="center" xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:s="library://ns.adobe.com/flex/spark">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.piematrix.pseudoThreader.ConsumerThread;
+			import com.piematrix.pseudoThreader.PseudoThread;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import spark.components.Label;
+
+			[Bindable]
+			private var bmd:BitmapData;
+			[Bindable]
+			private var bmd2:BitmapData;
+
+			private var thread:PseudoThread;
+			private var thread2:PseudoThread;
+			private var thread3:ConsumerThread;
+
+			private function colorRowOfPixels(obj:Object):Boolean
+			{
+				var yy:int = obj.curY;
+				var maxX:int = obj.maxX;
+
+				for (var xx:int = 0; xx < maxX; xx++)
+				{
+					var pix:uint = obj.bitmapData.getPixel32(xx, yy);
+					if (pix)
+					{
+						var red:uint = pix >> 16 & 0xff;
+						if (red < 0xff)
+							red = Math.min(red + 15, 0xff);
+						pix = (red << 16 & 0xff0000) + (pix & 0xff00ffff);
+						obj.bitmapData.setPixel32(xx, yy, pix);
+					}
+				}
+				obj.curY++;
+				if (obj.curY > obj.maxY)
+				{
+					obj.curY = 0;
+					obj.pass++;
+				}
+				obj.progressBar.setProgress(obj.pass * obj.maxY + obj.curY, obj.passes * obj.maxY);
+				return (obj.pass >= obj.passes);
+			}
+
+			private function createLabel(item:int):void
+			{
+				var label:Label = new Label();
+				label.text = item.toString();
+				numbers.addElement(label);
+			}
+
+			private function launchThreads():void
+			{
+				bmd = foo.bitmapData.clone();
+				bmd2 = foo.bitmapData.clone();
+
+				//First thread with priority 2
+				thread = new PseudoThread(colorRowOfPixels, 2, {bitmapData: bmd, progressBar: progress, curY: 0, maxY: bmd.height, maxX: bmd.width, pass: 0, passes: 20});
+				thread.start();
+				thread.addEventListener("threadComplete", thread1CompleteHandler);
+
+				//Second thread with priority 5
+				thread2 = new PseudoThread(colorRowOfPixels, 5, {bitmapData: bmd2, progressBar: progress2, curY: 0, maxY: bmd.height, maxX: bmd.width, pass: 0, passes: 20});
+				thread2.start();
+				thread2.addEventListener("threadComplete", thread2CompleteHandler);
+
+				//Consumer thread with priority 9
+				var nums:Array = new Array();
+				for (var i:int = 0; i < 1000; i++)
+				{
+					nums.push(i);
+				}
+				thread3 = new ConsumerThread(createLabel, 9);
+				thread3.items = new ArrayCollection(nums);
+				thread3.start();
+			}
+
+			private function thread1CompleteHandler(event:Event):void
+			{
+				progress.label = "Done!";
+			}
+
+			private function thread2CompleteHandler(event:Event):void
+			{
+				progress2.label = "Done!";
+			}
+		]]>
+	</fx:Script>
+	<s:Button label="Start Processing" click="{launchThreads()}"/>
+	<s:HGroup>
+		<s:Image id="foo" scaleX="0.5" scaleY="0.5" source="images/test_image.jpg"/>
+		<s:VGroup>
+			<s:Image id="bar" scaleX="0.5" scaleY="0.5" source="{bmd}"/>
+			<mx:ProgressBar id="progress" width="200" maximum="100" minimum="0" mode="manual"/>
+		</s:VGroup>
+		<s:VGroup>
+			<s:Image id="bar2" scaleX="0.5" scaleY="0.5" source="{bmd2}"/>
+			<mx:ProgressBar id="progress2" width="200" maximum="100" minimum="0" mode="manual"/>
+		</s:VGroup>
+	</s:HGroup>
+	<s:Scroller height="100%" width="100%">
+		<s:TileGroup id="numbers" width="100%">
+			<!-- Going to put numbered labels in here -->
+		</s:TileGroup>
+	</s:Scroller>
+</s:VGroup>

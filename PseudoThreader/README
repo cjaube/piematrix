@@ -1,0 +1,9 @@
+This project contains the pseudo thread files.
+
+The threading files are in the com.piematrix.pseudoThreader package.
+These files are under the MIT license: http://www.opensource.org/licenses/mit-license.php.
+
+Based on code from http://blogs.adobe.com/aharui/2008/01/threads_in_actionscript_3.html.
+
+The com.piematrix.test.PseudoThreadTest.mxml file contains examples on how to use the threader.
+
