@@ -20,7 +20,8 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 -->
-<s:HGroup gap="6" xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:s="library://ns.adobe.com/flex/spark">
+<s:HGroup gap="6" xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:s="library://ns.adobe.com/flex/spark"
+		  xmlns:sparkRichTextEditor="com.piematrix.sparkRichTextEditor.*">
 	<fx:Script>
 		<![CDATA[
 			import flash.text.engine.FontPosture;
@@ -60,7 +61,6 @@
 			[Embed(source = "images/textToolBar/underline.png")]
 			private const UNDERLINE_IMAGE:Class;
 
-			private var _linkWindow:LinkToolBarWindow
 			private var _textArea:TextArea;
 
 			/**
@@ -185,26 +185,6 @@
 				_textArea.setFocus();
 			}
 
-			protected function handleLinkClick(e:MouseEvent):void
-			{
-				var selectionState:SelectionState = _textArea.textFlow.interactionManager.getSelectionState();
-				var range:ElementRange = ElementRange.createElementRange(selectionState.textFlow, selectionState.absoluteStart, selectionState.absoluteEnd);
-
-				_linkWindow = LinkToolBarWindow(PopUpManager.createPopUp(FlexGlobals.topLevelApplication as DisplayObject, LinkToolBarWindow, true));
-				_linkWindow.activeFlow = _textArea.textFlow;
-				_linkWindow.update(range);
-				PopUpManager.centerPopUp(_linkWindow);
-				_linkWindow.addEventListener(Event.REMOVED_FROM_STAGE, handleLinkWindowClose);
-			}
-
-			protected function handleLinkWindowClose(e:Event):void
-			{
-				_linkWindow.removeEventListener(Event.REMOVED_FROM_STAGE, handleLinkWindowClose);
-				_linkWindow.activeFlow = null;
-				_linkWindow = null;
-				_textArea.setFocus();
-			}
-
 			protected function handleSelectionChange(e:FlexEvent):void
 			{
 				var txtLayFmt:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
@@ -233,7 +213,12 @@
 						txtAlignBB.selectedIndex = -1;
 						break;
 				}
-				linkBtn.enabled = _textArea.selectionAnchorPosition != _textArea.selectionActivePosition;
+				linkText.enabled = _textArea.selectionAnchorPosition != _textArea.selectionActivePosition;
+
+				var selectionState:SelectionState = _textArea.textFlow.interactionManager.getSelectionState();
+				var range:ElementRange = ElementRange.createElementRange(selectionState.textFlow, selectionState.absoluteStart, selectionState.absoluteEnd);
+				linkText.activeFlow = _textArea.textFlow;
+				linkText.update(range);
 			}
 
 			protected function handleSizeClick(e:IndexChangeEvent):void
@@ -313,5 +298,5 @@
 			<s:SolidColorStroke color="#B3C2B8"/>
 		</s:stroke>
 	</s:Line>
-	<s:Button id="linkBtn" width="20" click="handleLinkClick(event)" enabled="false" icon="{LINK_IMAGE}" toolTip="Hyperlink text"/>
+	<sparkRichTextEditor:LinkInput id="linkText" width="100%" enabled="false" minWidth="100" toolTip="Hyperlink text"/>
 </s:HGroup>
