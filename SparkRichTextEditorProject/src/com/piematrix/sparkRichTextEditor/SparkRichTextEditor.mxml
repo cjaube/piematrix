@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+* Copyright (c) 2012 PIEmatrix Corporation
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+-->
+<s:Group creationComplete="creationComplete()" xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:sparkRichTextEditor="com.piematrix.sparkRichTextEditor.*">
+	<fx:Metadata>
+		[Event(name="change", type="flash.events.Event")]
+		[Style(name="borderColor", inherit="no", type="unit")]
+		[Style(name="focusColor", inherit="yes", type="unit")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			[Bindable]
+			public var emptyMessage:String = "";
+
+			private var _htmlText:String;
+			private var _linkClickHandler:Function;
+			private var _stylesChanged:Dictionary = new Dictionary;
+			private var _text:String;
+
+			[Bindable("change")]
+			public function get htmlText():String
+			{
+				if (textArea)
+				{
+					return textArea.htmlText;
+				}
+				else
+				{
+					return _htmlText;
+				}
+			}
+
+			public function set htmlText(value:String):void
+			{
+				_htmlText = value;
+				if (textArea)
+				{
+					textArea.htmlText = value;
+				}
+			}
+
+			public function get linkClickHandler():Function
+			{
+				return _linkClickHandler;
+			}
+
+			public function set linkClickHandler(value:Function):void
+			{
+				_linkClickHandler = value;
+				if (textArea)
+				{
+					textArea.linkClickHandler = value;
+				}
+			}
+
+			public override function styleChanged(styleProp:String):void
+			{
+				super.styleChanged(styleProp);
+				_stylesChanged[styleProp] = getStyle(styleProp);
+				this.invalidateDisplayList();
+			}
+
+			[Bindable("change")]
+			public function get text():String
+			{
+				if (textArea)
+				{
+					return textArea.text;
+				}
+				else
+				{
+					return _text;
+				}
+			}
+
+			public function set text(value:String):void
+			{
+				_text = value;
+				if (textArea)
+				{
+					textArea.text = value;
+				}
+			}
+
+			protected override function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
+				if (textArea)
+				{
+					for (var key:String in _stylesChanged)
+					{
+						textArea.setStyle(key, _stylesChanged[key]);
+					}
+					_stylesChanged = new Dictionary; //Clear it out
+				}
+			}
+
+			private function creationComplete():void
+			{
+				if (_htmlText)
+				{
+					textArea.htmlText = _htmlText;
+				}
+				else if (_text)
+				{
+					textArea.text = _text;
+				}
+				textArea.linkClickHandler = _linkClickHandler;
+			}
+
+			private function handleChange(e:Event):void
+			{
+				this.dispatchEvent(e);
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:VGroup height="100%" width="100%">
+		<sparkRichTextEditor:TextAreaToolBar width="100%" bottom="6" textArea="{textArea}"/>
+		<sparkRichTextEditor:SparkTextArea id="textArea" height="100%" width="100%" change="handleChange(event)" prompt="{emptyMessage}"/>
+	</s:VGroup>
+</s:Group>

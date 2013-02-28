@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+* Copyright (c) 2012 PIEmatrix Corporation
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+-->
+<s:HGroup gap="6" xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:s="library://ns.adobe.com/flex/spark">
+	<fx:Script>
+		<![CDATA[
+			import flash.text.engine.FontPosture;
+			import flash.text.engine.FontWeight;
+			import flashx.textLayout.edit.ElementRange;
+			import flashx.textLayout.edit.IEditManager;
+			import flashx.textLayout.edit.SelectionState;
+			import flashx.textLayout.elements.FlowGroupElement;
+			import flashx.textLayout.elements.FlowLeafElement;
+			import flashx.textLayout.elements.ListElement;
+			import flashx.textLayout.formats.TextAlign;
+			import flashx.textLayout.formats.TextDecoration;
+			import flashx.textLayout.formats.TextLayoutFormat;
+			import mx.core.FlexGlobals;
+			import mx.events.ColorPickerEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import spark.components.TextArea;
+			import spark.events.IndexChangeEvent;
+
+			[Embed(source = "images/textToolBar/bold.png")]
+			private const BOLD_IMAGE:Class;
+			[Embed(source = "images/textToolBar/bullet.png")]
+			private const BULLET_IMAGE:Class;
+			[Embed(source = "images/textToolBar/center.png")]
+			private const CENTER_IMAGE:Class;
+			[Embed(source = "images/textToolBar/italic.png")]
+			private const ITALIC_IMAGE:Class;
+			[Embed(source = "images/textToolBar/justify.png")]
+			private const JUSTIFY_IMAGE:Class;
+			[Embed(source = "images/textToolBar/left.png")]
+			private const LEFT_IMAGE:Class;
+			[Embed(source = "images/textToolBar/link.png")]
+			private const LINK_IMAGE:Class;
+			[Embed(source = "images/textToolBar/right.png")]
+			private const RIGHT_IMAGE:Class;
+			[Embed(source = "images/textToolBar/underline.png")]
+			private const UNDERLINE_IMAGE:Class;
+
+			private var _linkWindow:LinkToolBarWindow
+			private var _textArea:TextArea;
+
+			/**
+			 * get the textArea that this toolbar is controlling
+			 */
+			public function get textArea():TextArea
+			{
+				return _textArea;
+			}
+
+			/**
+			 * Set the textArea that this toolbar will controll
+			 */
+			public function set textArea(value:TextArea):void
+			{
+				if (_textArea)
+				{
+					_textArea.removeEventListener(FlexEvent.SELECTION_CHANGE, handleSelectionChange);
+				}
+				_textArea = value;
+				if (_textArea)
+				{
+					_textArea.addEventListener(FlexEvent.SELECTION_CHANGE, handleSelectionChange, false, 0, true);
+				}
+			}
+
+			protected function handleBoldClick(e:MouseEvent):void
+			{
+				var txtLayFmt:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+				txtLayFmt.fontWeight = (txtLayFmt.fontWeight == FontWeight.BOLD) ? FontWeight.NORMAL : FontWeight.BOLD;
+				_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+				_textArea.setFocus();
+			}
+
+			protected function handleBulletClick(e:MouseEvent):void
+			{
+				if (_textArea.textFlow && _textArea.textFlow.interactionManager is IEditManager)
+				{
+					var editManager:IEditManager = IEditManager(_textArea.textFlow.interactionManager);
+					var doCreate:Boolean = true;
+					var selectionState:SelectionState = editManager.getSelectionState();
+					var startleaf:FlowLeafElement = _textArea.textFlow.findLeaf(selectionState.absoluteStart);
+					var endleaf:FlowLeafElement = _textArea.textFlow.findLeaf(selectionState.absoluteEnd);
+					selectionState.absoluteStart = startleaf.getAbsoluteStart();
+					selectionState.absoluteEnd = endleaf.getAbsoluteStart() + endleaf.parentRelativeEnd - endleaf.parentRelativeStart;
+					var listElements:Array = _textArea.textFlow.getElementsByTypeName("list");
+					for each (var listElement:ListElement in listElements)
+					{
+						var start:int = listElement.getAbsoluteStart();
+						var end:int = listElement.getAbsoluteStart() + listElement.parentRelativeEnd - listElement.parentRelativeStart;
+						if (selectionState.absoluteStart == start && selectionState.absoluteEnd == end)
+						{ //Same
+							removeList(listElement);
+							doCreate = false;
+							break;
+						}
+						else if (selectionState.absoluteStart == start && selectionState.absoluteEnd <= end)
+						{ //Inside touching start
+							selectionState = new SelectionState(_textArea.textFlow, end, selectionState.absoluteEnd);
+							removeList(listElement);
+							editManager.createList(null, null, selectionState);
+							doCreate = false;
+							break;
+						}
+						else if (selectionState.absoluteStart >= start && selectionState.absoluteEnd == end)
+						{ //Inside touching end
+							selectionState = new SelectionState(_textArea.textFlow, selectionState.absoluteStart, start);
+							removeList(listElement);
+							editManager.createList(null, null, selectionState);
+							doCreate = false;
+							break;
+						}
+						else if (selectionState.absoluteStart >= start && selectionState.absoluteEnd <= end)
+						{ //Inside
+							var firstRange:SelectionState = new SelectionState(_textArea.textFlow, selectionState.absoluteStart, start);
+							var secondRange:SelectionState = new SelectionState(_textArea.textFlow, end, selectionState.absoluteEnd);
+							removeList(listElement);
+							editManager.createList(null, null, firstRange);
+							editManager.createList(null, null, secondRange);
+							doCreate = false;
+							break;
+						}
+						else if ((selectionState.absoluteStart >= start && selectionState.absoluteStart <= end) || (selectionState.absoluteEnd >= start && selectionState.absoluteEnd <= end))
+						{ //Overlap. Include this list in the selection
+							selectionState = new SelectionState(_textArea.textFlow, Math.min(start, selectionState.absoluteStart), Math.max(end, selectionState.absoluteEnd));
+							removeList(listElement);
+						}
+						else if (selectionState.absoluteStart <= start && selectionState.absoluteEnd >= end)
+						{ //surround. Remove this list since it will get added back in, only expanded.
+							removeList(listElement);
+						}
+					}
+					if (doCreate)
+					{
+						IEditManager(_textArea.textFlow.interactionManager).createList(null, null, selectionState);
+					}
+					_textArea.textFlow.interactionManager.setFocus();
+				}
+			}
+
+			protected function handleColorClick(e:ColorPickerEvent):void
+			{
+				var txtLayFmt:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+				txtLayFmt.color = colorCP.selectedColor;
+				_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+				_textArea.setFocus();
+			}
+
+			protected function handleFontClick(e:IndexChangeEvent):void
+			{
+				var txtLayFmt:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+				txtLayFmt.fontFamily = fontDDL.selectedItem;
+				_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+				_textArea.setFocus();
+			}
+
+			protected function handleItalicsClick(e:MouseEvent):void
+			{
+				var txtLayFmt:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+				txtLayFmt.fontStyle = (txtLayFmt.fontStyle == FontPosture.ITALIC) ? FontPosture.NORMAL : FontPosture.ITALIC;
+				_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+				_textArea.setFocus();
+			}
+
+			protected function handleLinkClick(e:MouseEvent):void
+			{
+				var selectionState:SelectionState = _textArea.textFlow.interactionManager.getSelectionState();
+				var range:ElementRange = ElementRange.createElementRange(selectionState.textFlow, selectionState.absoluteStart, selectionState.absoluteEnd);
+
+				_linkWindow = LinkToolBarWindow(PopUpManager.createPopUp(FlexGlobals.topLevelApplication as DisplayObject, LinkToolBarWindow, true));
+				_linkWindow.activeFlow = _textArea.textFlow;
+				_linkWindow.update(range);
+				PopUpManager.centerPopUp(_linkWindow);
+				_linkWindow.addEventListener(Event.REMOVED_FROM_STAGE, handleLinkWindowClose);
+			}
+
+			protected function handleLinkWindowClose(e:Event):void
+			{
+				_linkWindow.removeEventListener(Event.REMOVED_FROM_STAGE, handleLinkWindowClose);
+				_linkWindow.activeFlow = null;
+				_linkWindow = null;
+				_textArea.setFocus();
+			}
+
+			protected function handleSelectionChange(e:FlexEvent):void
+			{
+				var txtLayFmt:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+				fontDDL.selectedItem = txtLayFmt.fontFamily;
+				sizeDDL.selectedItem = txtLayFmt.fontSize;
+				boldBtn.selected = (txtLayFmt.fontWeight == FontWeight.BOLD);
+				italBtn.selected = (txtLayFmt.fontStyle == FontPosture.ITALIC);
+				underBtn.selected = (txtLayFmt.textDecoration == TextDecoration.UNDERLINE);
+				colorCP.selectedColor = txtLayFmt.color;
+
+				switch (txtLayFmt.textAlign)
+				{
+					case TextAlign.LEFT:
+						txtAlignBB.selectedIndex = 0;
+						break;
+					case TextAlign.CENTER:
+						txtAlignBB.selectedIndex = 1;
+						break;
+					case TextAlign.RIGHT:
+						txtAlignBB.selectedIndex = 2;
+						break;
+					case TextAlign.JUSTIFY:
+						txtAlignBB.selectedIndex = 3;
+						break;
+					default:
+						txtAlignBB.selectedIndex = -1;
+						break;
+				}
+				linkBtn.enabled = _textArea.selectionAnchorPosition != _textArea.selectionActivePosition;
+			}
+
+			protected function handleSizeClick(e:IndexChangeEvent):void
+			{
+				var txtLayFmt:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+				txtLayFmt.fontSize = sizeDDL.selectedItem;
+				_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+				_textArea.setFocus();
+			}
+
+			protected function handleTextAlignClick(e:IndexChangeEvent):void
+			{
+				if (txtAlignBB.selectedItem)
+				{
+					var txtLayFmt:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+					txtLayFmt.textAlign = txtAlignBB.selectedItem.value;
+					_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+					_textArea.setFocus();
+				}
+			}
+
+			protected function handleUnderlineClick(e:MouseEvent):void
+			{
+				var txtLayFmt:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+				txtLayFmt.textDecoration = (txtLayFmt.textDecoration == TextDecoration.UNDERLINE) ? TextDecoration.NONE : TextDecoration.UNDERLINE;
+				_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+				_textArea.setFocus();
+			}
+
+			protected function removeList(listElement:ListElement):void
+			{
+				var editManager:IEditManager = IEditManager(_textArea.textFlow.interactionManager);
+
+				var target:FlowGroupElement = listElement.parent;
+				var targetIndex:int = target.getChildIndex(listElement);
+				editManager.moveChildren(listElement, 0, listElement.numChildren, target, targetIndex);
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:DropDownList id="fontDDL" width="100%" change="callLater(handleFontClick, [event]);" maxWidth="120" minWidth="80">
+		<s:dataProvider>
+			<s:ArrayList source="[_sans,_serif,_typewriter,Arial,Calibri,Courier,Courier New,Geneva,Georgia,Helvetica,Times New Roman,Times,Trebuchet MS,Verdana]"/>
+		</s:dataProvider>
+	</s:DropDownList>
+	<s:DropDownList id="sizeDDL" width="60" change="callLater(handleSizeClick, [event]);">
+		<s:dataProvider>
+			<s:ArrayList source="[8,9,10,11,12,14,16,18,20,22,24,26,28,36,48,72]"/>
+		</s:dataProvider>
+	</s:DropDownList>
+	<s:HGroup gap="0">
+		<s:ToggleButton id="boldBtn" width="20" click="handleBoldClick(event);" icon="{BOLD_IMAGE}" toolTip="Bold text"/>
+		<s:ToggleButton id="italBtn" width="20" click="handleItalicsClick(event);" icon="{ITALIC_IMAGE}" toolTip="Italic text"/>
+		<s:ToggleButton id="underBtn" width="20" click="handleUnderlineClick(event);" icon="{UNDERLINE_IMAGE}" toolTip="Underline text"/>
+	</s:HGroup>
+	<mx:ColorPicker id="colorCP" change="handleColorClick(event);" toolTip="Color text"/>
+	<s:Line height="100%">
+		<s:stroke>
+			<s:SolidColorStroke color="#B3C2B8"/>
+		</s:stroke>
+	</s:Line>
+	<s:ButtonBar id="txtAlignBB" width="80" arrowKeysWrapFocus="true" change="handleTextAlignClick(event);">
+		<s:dataProvider>
+			<s:ArrayList>
+				<fx:Object icon="{LEFT_IMAGE}" value="{TextAlign.LEFT}"/>
+				<fx:Object icon="{CENTER_IMAGE}" toolTip="Center text" value="{TextAlign.CENTER}"/>
+				<fx:Object icon="{RIGHT_IMAGE}" toolTip="Right align text" value="{TextAlign.RIGHT}"/>
+				<fx:Object icon="{JUSTIFY_IMAGE}" toolTip="Justify text" value="{TextAlign.JUSTIFY}"/>
+			</s:ArrayList>
+		</s:dataProvider>
+	</s:ButtonBar>
+	<s:Button id="bulletBtn" width="20" click="handleBulletClick(event);" icon="{BULLET_IMAGE}" toolTip="Bullet points"/>
+	<s:Line height="100%">
+		<s:stroke>
+			<s:SolidColorStroke color="#B3C2B8"/>
+		</s:stroke>
+	</s:Line>
+	<s:Button id="linkBtn" width="20" click="handleLinkClick(event)" enabled="false" icon="{LINK_IMAGE}" toolTip="Hyperlink text"/>
+</s:HGroup>
