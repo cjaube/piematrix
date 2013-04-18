@@ -21,34 +21,39 @@
  */
 package com.piematrix.sparkRichTextEditor
 {
+	import flash.events.Event;
 	import flashx.textLayout.conversion.ConversionType;
 	import flashx.textLayout.conversion.TextConverter;
-	import flashx.textLayout.elements.LinkElement;
-	import flashx.textLayout.elements.TextFlow;
-	import flashx.textLayout.events.FlowElementMouseEvent;
 	import spark.components.TextArea;
+	import spark.events.TextOperationEvent;
 
 	public class SparkTextArea extends TextArea
 	{
-		private var _htmlText:String;
-		private var _linkClickHandler:Function;
+		private var _htmlText:String = "";
+		private var _htmlTextChanged:Boolean = false;
 
 		public function SparkTextArea()
 		{
 			super();
+			this.addEventListener(TextOperationEvent.CHANGE, updateHTMLText, false, int.MAX_VALUE);
 		}
 
 		[Bindable("change")]
 		public function get htmlText():String
 		{
-			if (textFlow)
+			if (_htmlTextChanged)
 			{
-				return TextConverter.export(textFlow, TextConverter.TEXT_FIELD_HTML_FORMAT, ConversionType.STRING_TYPE) as String;
+				if (text == "")
+				{
+					_htmlText = "";
+				}
+				else
+				{
+					_htmlText = TextConverter.export(textFlow, TextConverter.TEXT_FIELD_HTML_FORMAT, ConversionType.STRING_TYPE) as String;
+				}
+				_htmlTextChanged = false;
 			}
-			else
-			{
-				return _htmlText;
-			}
+			return _htmlText;
 		}
 
 		public function set htmlText(value:String):void
@@ -56,45 +61,25 @@ package com.piematrix.sparkRichTextEditor
 			if (htmlText != value)
 			{
 				_htmlText = value;
-				updateTextFlow();
+				if (textFlow)
+				{
+					textFlow = TextConverter.importToFlow(_htmlText, TextConverter.TEXT_FIELD_HTML_FORMAT);
+				}
 			}
-		}
-
-		public function get linkClickHandler():Function
-		{
-			return _linkClickHandler;
-		}
-
-		public function set linkClickHandler(value:Function):void
-		{
-			_linkClickHandler = value;
 		}
 
 		protected override function createChildren():void
 		{
 			super.createChildren();
-			updateTextFlow();
-		}
-
-		private function handleLinkClick(e:FlowElementMouseEvent):void
-		{
-			if (_linkClickHandler != null)
+			if (_htmlText)
 			{
-				e.stopPropagation();
-				e.preventDefault();
-				var link:LinkElement = e.flowElement as LinkElement;
-				_linkClickHandler(link.href);
+				textFlow = TextConverter.importToFlow(_htmlText, TextConverter.TEXT_FIELD_HTML_FORMAT);
 			}
 		}
 
-		private function updateTextFlow():void
+		private function updateHTMLText(e:Event):void
 		{
-			if (textFlow && _htmlText)
-			{
-				var tf:TextFlow = TextConverter.importToFlow(_htmlText, TextConverter.TEXT_FIELD_HTML_FORMAT);
-				tf.addEventListener(FlowElementMouseEvent.CLICK, handleLinkClick);
-				textFlow = tf;
-			}
+			_htmlTextChanged = true;
 		}
 	}
 }

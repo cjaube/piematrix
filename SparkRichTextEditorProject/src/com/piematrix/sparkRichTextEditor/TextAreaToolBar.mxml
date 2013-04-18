@@ -21,7 +21,7 @@
 * SOFTWARE.
 -->
 <s:HGroup gap="6" xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:s="library://ns.adobe.com/flex/spark"
-		  xmlns:sparkRichTextEditor="com.piematrix.sparkRichTextEditor.*">
+		  xmlns:sparkColorPicker="com.piematrix.sparkRichTextEditor.sparkColorPicker.*" xmlns:sparkRichTextEditor="com.piematrix.sparkRichTextEditor.*">
 	<fx:Script>
 		<![CDATA[
 			import flash.text.engine.FontPosture;
@@ -35,30 +35,27 @@
 			import flashx.textLayout.formats.TextAlign;
 			import flashx.textLayout.formats.TextDecoration;
 			import flashx.textLayout.formats.TextLayoutFormat;
-			import mx.core.FlexGlobals;
-			import mx.events.ColorPickerEvent;
 			import mx.events.FlexEvent;
-			import mx.managers.PopUpManager;
 			import spark.components.TextArea;
 			import spark.events.IndexChangeEvent;
 
-			[Embed(source = "images/textToolBar/bold.png")]
+			[Embed(source = "/images/textToolBar/bold.png")]
 			private const BOLD_IMAGE:Class;
-			[Embed(source = "images/textToolBar/bullet.png")]
+			[Embed(source = "/images/textToolBar/bullet.png")]
 			private const BULLET_IMAGE:Class;
-			[Embed(source = "images/textToolBar/center.png")]
+			[Embed(source = "/images/textToolBar/center.png")]
 			private const CENTER_IMAGE:Class;
-			[Embed(source = "images/textToolBar/italic.png")]
+			[Embed(source = "/images/textToolBar/italic.png")]
 			private const ITALIC_IMAGE:Class;
-			[Embed(source = "images/textToolBar/justify.png")]
+			[Embed(source = "/images/textToolBar/justify.png")]
 			private const JUSTIFY_IMAGE:Class;
-			[Embed(source = "images/textToolBar/left.png")]
+			[Embed(source = "/images/textToolBar/left.png")]
 			private const LEFT_IMAGE:Class;
-			[Embed(source = "images/textToolBar/link.png")]
+			[Embed(source = "/images/textToolBar/link.png")]
 			private const LINK_IMAGE:Class;
-			[Embed(source = "images/textToolBar/right.png")]
+			[Embed(source = "/images/textToolBar/right.png")]
 			private const RIGHT_IMAGE:Class;
-			[Embed(source = "images/textToolBar/underline.png")]
+			[Embed(source = "/images/textToolBar/underline.png")]
 			private const UNDERLINE_IMAGE:Class;
 
 			private var _textArea:TextArea;
@@ -161,10 +158,10 @@
 				}
 			}
 
-			protected function handleColorClick(e:ColorPickerEvent):void
+			protected function handleColorClick(e:IndexChangeEvent):void
 			{
 				var txtLayFmt:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
-				txtLayFmt.color = colorCP.selectedColor;
+				txtLayFmt.color = colorCP.current.color;
 				_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
 				_textArea.setFocus();
 			}
@@ -193,7 +190,7 @@
 				boldBtn.selected = (txtLayFmt.fontWeight == FontWeight.BOLD);
 				italBtn.selected = (txtLayFmt.fontStyle == FontPosture.ITALIC);
 				underBtn.selected = (txtLayFmt.textDecoration == TextDecoration.UNDERLINE);
-				colorCP.selectedColor = txtLayFmt.color;
+				colorCP.current.color = txtLayFmt.color;
 
 				switch (txtLayFmt.textAlign)
 				{
@@ -216,9 +213,12 @@
 				linkText.enabled = _textArea.selectionAnchorPosition != _textArea.selectionActivePosition;
 
 				var selectionState:SelectionState = _textArea.textFlow.interactionManager.getSelectionState();
-				var range:ElementRange = ElementRange.createElementRange(selectionState.textFlow, selectionState.absoluteStart, selectionState.absoluteEnd);
-				linkText.activeFlow = _textArea.textFlow;
-				linkText.update(range);
+				if (selectionState.absoluteStart != -1 && selectionState.absoluteEnd != -1)
+				{
+					var range:ElementRange = ElementRange.createElementRange(selectionState.textFlow, selectionState.absoluteStart, selectionState.absoluteEnd);
+					linkText.activeFlow = _textArea.textFlow;
+					linkText.update(range);
+				}
 			}
 
 			protected function handleSizeClick(e:IndexChangeEvent):void
@@ -256,33 +256,42 @@
 				var targetIndex:int = target.getChildIndex(listElement);
 				editManager.moveChildren(listElement, 0, listElement.numChildren, target, targetIndex);
 			}
+
+			private function handleLinkKeydown(e:KeyboardEvent):void
+			{
+				e.stopImmediatePropagation();
+				if (e.keyCode == Keyboard.ENTER)
+				{
+					_textArea.setFocus();
+				}
+			}
 		]]>
 	</fx:Script>
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
-	<s:DropDownList id="fontDDL" width="100%" change="callLater(handleFontClick, [event]);" maxWidth="120" minWidth="80">
+	<s:DropDownList id="fontDDL" width="100%" change="callLater(handleFontClick, [event]);" maxWidth="120" minWidth="80" mouseFocusEnabled="false">
 		<s:dataProvider>
 			<s:ArrayList source="[_sans,_serif,_typewriter,Arial,Calibri,Courier,Courier New,Geneva,Georgia,Helvetica,Times New Roman,Times,Trebuchet MS,Verdana]"/>
 		</s:dataProvider>
 	</s:DropDownList>
-	<s:DropDownList id="sizeDDL" width="60" change="callLater(handleSizeClick, [event]);">
+	<s:DropDownList id="sizeDDL" width="60" change="callLater(handleSizeClick, [event]);" mouseFocusEnabled="false">
 		<s:dataProvider>
 			<s:ArrayList source="[8,9,10,11,12,14,16,18,20,22,24,26,28,36,48,72]"/>
 		</s:dataProvider>
 	</s:DropDownList>
 	<s:HGroup gap="0">
-		<s:ToggleButton id="boldBtn" width="20" click="handleBoldClick(event);" icon="{BOLD_IMAGE}" toolTip="Bold text"/>
-		<s:ToggleButton id="italBtn" width="20" click="handleItalicsClick(event);" icon="{ITALIC_IMAGE}" toolTip="Italic text"/>
-		<s:ToggleButton id="underBtn" width="20" click="handleUnderlineClick(event);" icon="{UNDERLINE_IMAGE}" toolTip="Underline text"/>
+		<s:ToggleButton id="boldBtn" width="20" click="handleBoldClick(event);" icon="{BOLD_IMAGE}" mouseFocusEnabled="false" toolTip="Bold text"/>
+		<s:ToggleButton id="italBtn" width="20" click="handleItalicsClick(event);" icon="{ITALIC_IMAGE}" mouseFocusEnabled="false" toolTip="Italic text"/>
+		<s:ToggleButton id="underBtn" width="20" click="handleUnderlineClick(event);" icon="{UNDERLINE_IMAGE}" mouseFocusEnabled="false" toolTip="Underline text"/>
 	</s:HGroup>
-	<mx:ColorPicker id="colorCP" change="handleColorClick(event);" toolTip="Color text"/>
+	<sparkColorPicker:SparkColorPicker id="colorCP" height="21" width="20" change="{handleColorClick(event);}" mouseFocusEnabled="false" toolTip="Color text"/>
 	<s:Line height="100%">
 		<s:stroke>
 			<s:SolidColorStroke color="#B3C2B8"/>
 		</s:stroke>
 	</s:Line>
-	<s:ButtonBar id="txtAlignBB" width="80" arrowKeysWrapFocus="true" change="handleTextAlignClick(event);">
+	<s:ButtonBar id="txtAlignBB" width="80" arrowKeysWrapFocus="true" change="handleTextAlignClick(event);" mouseFocusEnabled="false">
 		<s:dataProvider>
 			<s:ArrayList>
 				<fx:Object icon="{LEFT_IMAGE}" value="{TextAlign.LEFT}"/>
@@ -292,11 +301,11 @@
 			</s:ArrayList>
 		</s:dataProvider>
 	</s:ButtonBar>
-	<s:Button id="bulletBtn" width="20" click="handleBulletClick(event);" icon="{BULLET_IMAGE}" toolTip="Bullet points"/>
+	<s:Button id="bulletBtn" width="20" click="handleBulletClick(event);" icon="{BULLET_IMAGE}" mouseFocusEnabled="false" toolTip="Bullet points"/>
 	<s:Line height="100%">
 		<s:stroke>
 			<s:SolidColorStroke color="#B3C2B8"/>
 		</s:stroke>
 	</s:Line>
-	<sparkRichTextEditor:LinkInput id="linkText" width="100%" enabled="false" minWidth="100" toolTip="Hyperlink text"/>
+	<sparkRichTextEditor:LinkInput id="linkText" width="100%" enabled="false" keyDown="handleLinkKeydown(event)" minWidth="100" mouseFocusEnabled="false" toolTip="Hyperlink text"/>
 </s:HGroup>

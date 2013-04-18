@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--- The default skin class for the anchor button on a Spark DropDownList component.
+
+	  @see spark.components.DropDownList
+	  @see spark.skins.spark.DropDownListSkin
+
+	  @langversion 3.0
+	  @playerversion Flash 10
+	  @playerversion AIR 1.5
+	  @productversion Flex 4
+-->
+<s:SparkSkin minHeight="20" minWidth="20" xmlns:fb="http://ns.adobe.com/flashbuilder/2009" xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark">
+
+	<fx:Metadata>
+		<![CDATA[ 
+        /** 
+         * @copy spark.skins.spark.ApplicationSkin#hostComponent
+         */
+        [HostComponent("spark.components.Button")]
+    ]]>
+	</fx:Metadata>
+
+	<fx:Script fb:purpose="styling">
+		/* Define the skin elements that should not be colorized.
+		   For dropDownList buttons, the graphics are colorized but the arrow is not. */
+		private static const exclusions:Array = ["icon"];
+
+		private var cornerRadius:Number = 2;
+
+		/**
+		 * @private
+		 */
+		public override function get colorizeExclusions():Array
+		{
+			return exclusions;
+		}
+
+		/* Define the symbol fill items that should be colored by the "symbolColor" style. */
+		// static private const symbols:Array = ["arrowFill1", "arrowFill2"];
+
+		/**
+		 * @private
+		 */
+		// override public function get symbolItems():Array {return symbols};
+
+		/**
+		 * @private
+		 */
+		protected override function initializationComplete():void
+		{
+			useChromeColor = true;
+			super.initializationComplete();
+		}
+
+		/**
+		 *  @private
+		 */
+		protected override function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+		{
+			var cr:Number = getStyle("cornerRadius");
+
+			if (cornerRadius != cr)
+			{
+				cornerRadius = cr;
+				shadow.radiusX = cornerRadius;
+				fill.radiusX = cornerRadius;
+				lowlight.radiusX = cornerRadius;
+				highlight.radiusX = cornerRadius;
+				border.radiusX = cornerRadius;
+			}
+
+			if (highlightStroke)
+				highlightStroke.radiusX = cornerRadius;
+			if (hldownstroke1)
+				hldownstroke1.radiusX = cornerRadius;
+			if (hldownstroke2)
+				hldownstroke2.radiusX = cornerRadius;
+
+			super.updateDisplayList(unscaledWidth, unscaledHeight);
+		}
+	</fx:Script>
+
+	<!-- states -->
+	<s:states>
+		<s:State name="up"/>
+		<s:State name="over"/>
+		<s:State name="down"/>
+		<s:State name="disabled"/>
+	</s:states>
+
+	<!-- layer 1: shadow -->
+	<!--- @private -->
+	<s:Rect id="shadow" bottom="-1" left="-1" radiusX="2" right="-1" top="-1">
+		<s:fill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry alpha="0.01" alpha.down="0" color="0x000000" color.down="0xFFFFFF"/>
+				<s:GradientEntry alpha="0.07" alpha.down="0.5" color="0x000000" color.down="0xFFFFFF"/>
+			</s:LinearGradient>
+		</s:fill>
+	</s:Rect>
+
+	<!-- layer 2: fill -->
+	<!--- @private -->
+	<s:Rect id="fill" bottom="1" left="1" radiusX="2" right="1" top="1">
+		<s:fill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry alpha="0.85" color="0xFFFFFF" color.down="0xAAAAAA" color.over="0xBBBDBD"/>
+				<s:GradientEntry alpha="0.85" color="0xD8D8D8" color.down="0x929496" color.over="0x9FA0A1"/>
+			</s:LinearGradient>
+		</s:fill>
+	</s:Rect>
+
+	<!-- layer 3: fill lowlight -->
+	<!--- @private -->
+	<s:Rect id="lowlight" bottom="1" left="1" radiusX="2" right="1" top="1">
+		<s:fill>
+			<s:LinearGradient rotation="270">
+				<s:GradientEntry alpha="0.0627" color="0x000000" ratio="0.0"/>
+				<s:GradientEntry alpha="0.0099" color="0x000000" ratio="0.48"/>
+				<s:GradientEntry alpha="0" color="0x000000" ratio="0.48001"/>
+			</s:LinearGradient>
+		</s:fill>
+	</s:Rect>
+
+	<!-- layer 4: fill highlight -->
+	<!--- @private -->
+	<s:Rect id="highlight" bottom="1" left="1" radiusX="2" right="1" top="1">
+		<s:fill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry alpha="0.33" alpha.down="0.12" alpha.over="0.22" color="0xFFFFFF" ratio="0.0"/>
+				<s:GradientEntry alpha="0.33" alpha.down="0.12" alpha.over="0.22" color="0xFFFFFF" ratio="0.48"/>
+				<s:GradientEntry alpha="0" color="0xFFFFFF" ratio="0.48001"/>
+			</s:LinearGradient>
+		</s:fill>
+	</s:Rect>
+
+	<!-- layer 5: highlight stroke (all states except down) -->
+	<!--- @private -->
+	<s:Rect id="highlightStroke" bottom="1" excludeFrom="down" left="1" radiusX="2" right="1" top="1">
+		<s:stroke>
+			<s:LinearGradientStroke rotation="90" weight="1">
+				<s:GradientEntry alpha.over="0.22" color="0xFFFFFF"/>
+				<s:GradientEntry alpha.over="0.22" color="0xD8D8D8"/>
+			</s:LinearGradientStroke>
+		</s:stroke>
+	</s:Rect>
+
+	<!-- layer 6: highlight stroke (down state only) -->
+	<!--- @private -->
+	<s:Rect id="hldownstroke1" bottom="1" includeIn="down" left="1" radiusX="2" right="1" top="1">
+		<s:stroke>
+			<s:LinearGradientStroke rotation="90" weight="1">
+				<s:GradientEntry alpha="0.25" color="0x000000" ratio="0.0"/>
+				<s:GradientEntry alpha="0.25" color="0x000000" ratio="0.001"/>
+				<s:GradientEntry alpha="0.07" color="0x000000" ratio="0.0011"/>
+				<s:GradientEntry alpha="0.07" color="0x000000" ratio="0.965"/>
+				<s:GradientEntry alpha="0.00" color="0x000000" ratio="0.9651"/>
+			</s:LinearGradientStroke>
+		</s:stroke>
+	</s:Rect>
+	<!--- @private -->
+	<s:Rect id="hldownstroke2" bottom="2" includeIn="down" left="2" radiusX="2" right="2" top="2">
+		<s:stroke>
+			<s:LinearGradientStroke rotation="90" weight="1">
+				<s:GradientEntry alpha="0.09" color="0x000000" ratio="0.0"/>
+				<s:GradientEntry alpha="0.00" color="0x000000" ratio="0.0001"/>
+			</s:LinearGradientStroke>
+		</s:stroke>
+	</s:Rect>
+
+	<!-- layer 7: border - put on top of the fill so it doesn't disappear when scale is less than 1 -->
+	<!--- @private -->
+	<s:Rect id="border" height="20" width="20" bottom="0" left="0" radiusX="2" right="0" top="0">
+		<s:stroke>
+			<s:LinearGradientStroke rotation="90" weight="1">
+				<s:GradientEntry alpha="0.5625" alpha.down="0.6375" color="0x000000"/>
+				<s:GradientEntry alpha="0.75" alpha.down="0.85" color="0x000000"/>
+			</s:LinearGradientStroke>
+		</s:stroke>
+	</s:Rect>
+
+</s:SparkSkin>

@@ -29,13 +29,15 @@
 	</fx:Metadata>
 	<fx:Script>
 		<![CDATA[
+			import flashx.textLayout.elements.TextFlow;
+
 			[Bindable]
 			public var emptyMessage:String = "";
 
 			private var _htmlText:String;
-			private var _linkClickHandler:Function;
 			private var _stylesChanged:Dictionary = new Dictionary;
 			private var _text:String;
+			private var _textFlow:TextFlow;
 
 			[Bindable("change")]
 			public function get htmlText():String
@@ -56,20 +58,6 @@
 				if (textArea)
 				{
 					textArea.htmlText = value;
-				}
-			}
-
-			public function get linkClickHandler():Function
-			{
-				return _linkClickHandler;
-			}
-
-			public function set linkClickHandler(value:Function):void
-			{
-				_linkClickHandler = value;
-				if (textArea)
-				{
-					textArea.linkClickHandler = value;
 				}
 			}
 
@@ -102,6 +90,28 @@
 				}
 			}
 
+			[Bindable("change")]
+			public function get textFlow():TextFlow
+			{
+				if (textArea)
+				{
+					return textArea.textFlow;
+				}
+				else
+				{
+					return _textFlow;
+				}
+			}
+
+			public function set textFlow(value:TextFlow):void
+			{
+				_textFlow = value;
+				if (textArea)
+				{
+					textArea.textFlow = value;
+				}
+			}
+
 			protected override function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
@@ -125,7 +135,6 @@
 				{
 					textArea.text = _text;
 				}
-				textArea.linkClickHandler = _linkClickHandler;
 			}
 
 			private function handleChange(e:Event):void
