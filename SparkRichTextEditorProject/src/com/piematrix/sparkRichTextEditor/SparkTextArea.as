@@ -22,10 +22,13 @@
 package com.piematrix.sparkRichTextEditor
 {
 	import flash.events.Event;
-	import flashx.textLayout.conversion.ConversionType;
-	import flashx.textLayout.conversion.TextConverter;
+	
 	import spark.components.TextArea;
 	import spark.events.TextOperationEvent;
+	
+	import flashx.textLayout.conversion.ConversionType;
+	import flashx.textLayout.conversion.TextConverter;
+	import flashx.textLayout.elements.TextFlow;
 
 	public class SparkTextArea extends TextArea
 	{
@@ -35,6 +38,7 @@ package com.piematrix.sparkRichTextEditor
 		public function SparkTextArea()
 		{
 			super();
+			this.textFlow = new TextFlow; //Prevents a stack trace that happends when you try to access the textflow on click.
 			this.addEventListener(TextOperationEvent.CHANGE, updateHTMLText, false, int.MAX_VALUE);
 		}
 
