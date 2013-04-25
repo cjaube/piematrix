@@ -24,7 +24,6 @@ package com.piematrix.sparkRichTextEditor
 	import flash.events.Event;
 	import flash.events.FocusEvent;
 	import flashx.textLayout.edit.ElementRange;
-	import flashx.textLayout.edit.ElementRange;
 	import flashx.textLayout.edit.IEditManager;
 	import flashx.textLayout.elements.LinkElement;
 	import flashx.textLayout.elements.ParagraphElement;
@@ -34,8 +33,8 @@ package com.piematrix.sparkRichTextEditor
 
 	public class LinkInput extends TextInput
 	{
-
 		public var activeFlow:TextFlow;
+		private const defaultLinkText:String = "http://";
 		private var lastRange:ElementRange;
 
 		public function LinkInput()
@@ -52,7 +51,7 @@ package com.piematrix.sparkRichTextEditor
 				lastRange = null;
 				return;
 			}
-			var linkString:String = "http://";
+			var linkString:String = defaultLinkText;
 			var linkEl:LinkElement = range.firstLeaf.getParentByType(LinkElement) as LinkElement;
 			if (linkEl != null)
 			{
@@ -87,7 +86,8 @@ package com.piematrix.sparkRichTextEditor
 
 		private function apply(e:Event = null):void
 		{
-			changeLink(this.text);
+			var newText:String = this.text == defaultLinkText ? '' : this.text;
+			changeLink(newText);
 		}
 
 		private function changeLink(urlText:String):void
