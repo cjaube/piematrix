@@ -26,6 +26,13 @@
 		<![CDATA[
 			import flash.text.engine.FontPosture;
 			import flash.text.engine.FontWeight;
+			
+			import mx.events.FlexEvent;
+			
+			import spark.components.TextArea;
+			import spark.events.IndexChangeEvent;
+			import spark.events.TextOperationEvent;
+			
 			import flashx.textLayout.edit.ElementRange;
 			import flashx.textLayout.edit.IEditManager;
 			import flashx.textLayout.edit.SelectionState;
@@ -35,9 +42,6 @@
 			import flashx.textLayout.formats.TextAlign;
 			import flashx.textLayout.formats.TextDecoration;
 			import flashx.textLayout.formats.TextLayoutFormat;
-			import mx.events.FlexEvent;
-			import spark.components.TextArea;
-			import spark.events.IndexChangeEvent;
 
 			[Embed(source = "/images/textToolBar/bold.png")]
 			private const BOLD_IMAGE:Class;
@@ -90,6 +94,7 @@
 				txtLayFmt.fontWeight = (txtLayFmt.fontWeight == FontWeight.BOLD) ? FontWeight.NORMAL : FontWeight.BOLD;
 				_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
 				_textArea.setFocus();
+				_textArea.dispatchEvent(new TextOperationEvent(TextOperationEvent.CHANGE));
 			}
 
 			protected function handleBulletClick(e:MouseEvent):void
@@ -164,6 +169,7 @@
 				txtLayFmt.color = colorCP.current.color;
 				_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
 				_textArea.setFocus();
+				_textArea.dispatchEvent(new TextOperationEvent(TextOperationEvent.CHANGE));
 			}
 
 			protected function handleFontClick(e:IndexChangeEvent):void
@@ -172,6 +178,7 @@
 				txtLayFmt.fontFamily = fontDDL.selectedItem;
 				_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
 				_textArea.setFocus();
+				_textArea.dispatchEvent(new TextOperationEvent(TextOperationEvent.CHANGE));
 			}
 
 			protected function handleItalicsClick(e:MouseEvent):void
@@ -180,6 +187,7 @@
 				txtLayFmt.fontStyle = (txtLayFmt.fontStyle == FontPosture.ITALIC) ? FontPosture.NORMAL : FontPosture.ITALIC;
 				_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
 				_textArea.setFocus();
+				_textArea.dispatchEvent(new TextOperationEvent(TextOperationEvent.CHANGE));
 			}
 
 			protected function handleSelectionChange(e:FlexEvent):void
@@ -227,6 +235,7 @@
 				txtLayFmt.fontSize = sizeDDL.selectedItem;
 				_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
 				_textArea.setFocus();
+				_textArea.dispatchEvent(new TextOperationEvent(TextOperationEvent.CHANGE));
 			}
 
 			protected function handleTextAlignClick(e:IndexChangeEvent):void
@@ -237,6 +246,7 @@
 					txtLayFmt.textAlign = txtAlignBB.selectedItem.value;
 					_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
 					_textArea.setFocus();
+					_textArea.dispatchEvent(new TextOperationEvent(TextOperationEvent.CHANGE));
 				}
 			}
 
@@ -246,6 +256,7 @@
 				txtLayFmt.textDecoration = (txtLayFmt.textDecoration == TextDecoration.UNDERLINE) ? TextDecoration.NONE : TextDecoration.UNDERLINE;
 				_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
 				_textArea.setFocus();
+				_textArea.dispatchEvent(new TextOperationEvent(TextOperationEvent.CHANGE));
 			}
 
 			protected function removeList(listElement:ListElement):void
