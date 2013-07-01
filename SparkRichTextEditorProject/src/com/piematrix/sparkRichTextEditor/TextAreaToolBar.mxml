@@ -26,13 +26,6 @@
 		<![CDATA[
 			import flash.text.engine.FontPosture;
 			import flash.text.engine.FontWeight;
-			
-			import mx.events.FlexEvent;
-			
-			import spark.components.TextArea;
-			import spark.events.IndexChangeEvent;
-			import spark.events.TextOperationEvent;
-			
 			import flashx.textLayout.edit.ElementRange;
 			import flashx.textLayout.edit.IEditManager;
 			import flashx.textLayout.edit.SelectionState;
@@ -42,6 +35,10 @@
 			import flashx.textLayout.formats.TextAlign;
 			import flashx.textLayout.formats.TextDecoration;
 			import flashx.textLayout.formats.TextLayoutFormat;
+			import mx.events.FlexEvent;
+			import spark.components.TextArea;
+			import spark.events.IndexChangeEvent;
+			import spark.events.TextOperationEvent;
 
 			[Embed(source = "/images/textToolBar/bold.png")]
 			private const BOLD_IMAGE:Class;
@@ -63,6 +60,7 @@
 			private const UNDERLINE_IMAGE:Class;
 
 			private var _textArea:TextArea;
+			private var _urlRegExpression:RegExp = new RegExp("^(https?://(www\\.)?|www\\.)[-._~:/?#\\[\\]@!$&'()*+,;=a-z0-9]+$", 'i');
 
 			/**
 			 * get the textArea that this toolbar is controlling
@@ -80,11 +78,13 @@
 				if (_textArea)
 				{
 					_textArea.removeEventListener(FlexEvent.SELECTION_CHANGE, handleSelectionChange);
+					_textArea.removeEventListener(KeyboardEvent.KEY_DOWN, handleKeyDown);
 				}
 				_textArea = value;
 				if (_textArea)
 				{
 					_textArea.addEventListener(FlexEvent.SELECTION_CHANGE, handleSelectionChange, false, 0, true);
+					_textArea.addEventListener(KeyboardEvent.KEY_DOWN, handleKeyDown, false, 0, true);
 				}
 			}
 
@@ -268,6 +268,53 @@
 				editManager.moveChildren(listElement, 0, listElement.numChildren, target, targetIndex);
 			}
 
+			private function checkLinks():void
+			{
+				var position:int = _textArea.selectionActivePosition;
+				//Find the firt non-whitespace character
+				while (position > 0)
+				{
+					if (!isWhitespace(_textArea.textFlow.getCharCodeAtPosition(position)))
+					{
+						break;
+					}
+					position--;
+				}
+				//Find the next whitespace character
+				while (position > 0)
+				{
+					if (isWhitespace(_textArea.textFlow.getCharCodeAtPosition(position)))
+					{
+						position++; //Back up one character
+						break;
+					}
+					position--;
+				}
+				var testText:String = _textArea.textFlow.getText(position, _textArea.selectionActivePosition);
+				var result:Array = testText.match(_urlRegExpression);
+				if (result != null && result.length > 0)
+				{
+					if (_textArea.textFlow.interactionManager is IEditManager)
+					{
+						var selectionState:SelectionState = new SelectionState(_textArea.textFlow, position, _textArea.selectionActivePosition);
+						if (testText.substr(0, 3) == "www")
+						{
+							testText = "http://" + testText; //Add a missing 'http://' if needed
+						}
+						IEditManager(_textArea.textFlow.interactionManager).applyLink(testText, "_blank", true, selectionState);
+						_textArea.setFocus();
+					}
+				}
+			}
+
+			private function handleKeyDown(e:KeyboardEvent):void
+			{
+				if (e.keyCode == Keyboard.ENTER || e.keyCode == Keyboard.SPACE || e.keyCode == Keyboard.TAB)
+				{
+					checkLinks();
+				}
+			}
+
 			private function handleLinkKeydown(e:KeyboardEvent):void
 			{
 				e.stopImmediatePropagation();
@@ -275,6 +322,11 @@
 				{
 					_textArea.setFocus();
 				}
+			}
+
+			private function isWhitespace(charCode:uint):Boolean
+			{
+				return charCode === 0x0009 || charCode === 0x000A || charCode === 0x000B || charCode === 0x000C || charCode === 0x000D || charCode === 0x0020 || charCode === 0x0085 || charCode === 0x00A0 || charCode === 0x1680 || charCode === 0x180E || charCode === 0x2000 || charCode === 0x2001 || charCode === 0x2002 || charCode === 0x2003 || charCode === 0x2004 || charCode === 0x2005 || charCode === 0x2006 || charCode === 0x2007 || charCode === 0x2008 || charCode === 0x2009 || charCode === 0x200A || charCode === 0x2028 || charCode === 0x2029 || charCode === 0x202F || charCode === 0x205F || charCode === 0x3000;
 			}
 		]]>
 	</fx:Script>
