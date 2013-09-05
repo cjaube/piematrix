@@ -23,17 +23,28 @@ package com.piematrix.sparkRichTextEditor
 {
 	import flash.events.Event;
 	import flash.events.FocusEvent;
+	import flashx.textLayout.conversion.ConversionType;
+	import flashx.textLayout.conversion.TextConverter;
 	import flashx.textLayout.edit.ElementRange;
 	import flashx.textLayout.edit.IEditManager;
+	import flashx.textLayout.edit.SelectionState;
 	import flashx.textLayout.elements.LinkElement;
 	import flashx.textLayout.elements.ParagraphElement;
+	import flashx.textLayout.elements.SpanElement;
 	import flashx.textLayout.elements.TextFlow;
+	import flashx.textLayout.formats.ITextLayoutFormat;
+	import flashx.textLayout.formats.TextDecoration;
+	import flashx.textLayout.formats.TextLayoutFormat;
+	import mx.controls.Alert;
 	import mx.events.FlexEvent;
+	import spark.components.TextArea;
 	import spark.components.TextInput;
 
+	[Event(name = "linkSelectedChange", type = "flash.events.Event")]
 	public class LinkInput extends TextInput
 	{
-		public var activeFlow:TextFlow;
+		public var textArea:TextArea;
+		private var _linkSelected:Boolean = false;
 		private const defaultLinkText:String = "http://";
 		private var lastRange:ElementRange;
 
@@ -42,6 +53,12 @@ package com.piematrix.sparkRichTextEditor
 			super();
 			this.addEventListener(FlexEvent.ENTER, apply);
 			this.addEventListener(FocusEvent.MOUSE_FOCUS_CHANGE, apply);
+		}
+
+		[Bindable("linkSelectedChange")]
+		public function get linkSelected():Boolean
+		{
+			return _linkSelected;
 		}
 
 		public function update(range:ElementRange):void
@@ -78,6 +95,12 @@ package com.piematrix.sparkRichTextEditor
 					linkString = LinkElement(linkEl).href;
 				}
 			}
+			var newLinkSelected:Boolean = linkEl != null;
+			if (_linkSelected != newLinkSelected)
+			{
+				_linkSelected = newLinkSelected;
+				this.dispatchEvent(new Event("linkSelectedChange"));
+			}
 
 			this.text = linkString;
 
@@ -92,10 +115,19 @@ package com.piematrix.sparkRichTextEditor
 
 		private function changeLink(urlText:String):void
 		{
-			if (activeFlow && activeFlow.interactionManager is IEditManager)
+			if (textArea && textArea.textFlow && textArea.textFlow.interactionManager is IEditManager)
 			{
-				IEditManager(activeFlow.interactionManager).applyLink(urlText, "_blank", true);
-				activeFlow.interactionManager.setFocus();
+				//Get the current format
+				var txtLayFmt:TextLayoutFormat = textArea.textFlow.interactionManager.getCommonCharacterFormat();
+				//Set the link
+				var linkElement:LinkElement = IEditManager(textArea.textFlow.interactionManager).applyLink(urlText, "_blank", true);
+				//Fix the formatting
+				IEditManager(textArea.textFlow.interactionManager).clearFormatOnElement(linkElement.getChildAt(0), txtLayFmt);
+				var selectionEnd:int = Math.max(textArea.selectionActivePosition, textArea.selectionAnchorPosition);
+				textArea.selectRange(selectionEnd, selectionEnd);
+				IEditManager(textArea.textFlow.interactionManager).applyLeafFormat(txtLayFmt);
+				//Set focus to textFlow
+				textArea.textFlow.interactionManager.setFocus();
 			}
 		}
 	}

@@ -1,8 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<s:Application minHeight="600" minWidth="955" xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:s="library://ns.adobe.com/flex/spark"
-			   xmlns:sparkRichTextEditor="com.piematrix.sparkRichTextEditor.*">
+<s:Application creationComplete="creationComplete()" minHeight="600" minWidth="955" xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:s="library://ns.adobe.com/flex/spark" xmlns:sparkRichTextEditor="com.piematrix.sparkRichTextEditor.*">
+	<fx:Script>
+		<![CDATA[
+			import flashx.textLayout.conversion.ConversionType;
+			import flashx.textLayout.conversion.TextConverter;
+			import flashx.textLayout.events.UpdateCompleteEvent;
+
+			[Bindable]
+			private var textFlowOutput:String = "";
+
+			private function creationComplete():void
+			{
+				sparkRichTextEditor.textFlow.addEventListener(UpdateCompleteEvent.UPDATE_COMPLETE, handleUpdateComplete);
+			}
+
+			private function handleUpdateComplete(e:Event):void
+			{
+				textFlowOutput = TextConverter.export(sparkRichTextEditor.textFlow, TextConverter.TEXT_LAYOUT_FORMAT, ConversionType.STRING_TYPE).toString();
+			}
+		]]>
+	</fx:Script>
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
-	<sparkRichTextEditor:SparkRichTextEditor horizontalCenter="0" verticalCenter="0"/>
+	<s:VGroup horizontalCenter="0" minWidth="0" verticalCenter="0">
+		<sparkRichTextEditor:SparkRichTextEditor id="sparkRichTextEditor"/>
+		<s:Scroller>
+			<s:Group height="200" width="510">
+				<s:Label width="510" text="{textFlowOutput}"/>
+			</s:Group>
+		</s:Scroller>
+	</s:VGroup>
 </s:Application>

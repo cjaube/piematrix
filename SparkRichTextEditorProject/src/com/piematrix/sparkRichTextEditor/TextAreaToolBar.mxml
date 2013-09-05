@@ -22,6 +22,9 @@
 -->
 <s:HGroup gap="6" xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:s="library://ns.adobe.com/flex/spark"
 		  xmlns:sparkColorPicker="com.piematrix.sparkRichTextEditor.sparkColorPicker.*" xmlns:sparkRichTextEditor="com.piematrix.sparkRichTextEditor.*">
+	<fx:Metadata>
+		[Event(name="linkSelectedChange", type="flash.events.Event")]
+	</fx:Metadata>
 	<fx:Script>
 		<![CDATA[
 			import flash.text.engine.FontPosture;
@@ -59,8 +62,15 @@
 			[Embed(source = "/images/textToolBar/underline.png")]
 			private const UNDERLINE_IMAGE:Class;
 
+			private var _linkSelected:Boolean = false;
 			private var _textArea:TextArea;
 			private var _urlRegExpression:RegExp = new RegExp("^(https?://(www\\.)?|www\\.)[-._~:/?#\\[\\]@!$&'()*+,;=a-z0-9]+$", 'i');
+
+			[Bindable("linkSelectedChange")]
+			public function get linkSelected():Boolean
+			{
+				return _linkSelected;
+			}
 
 			/**
 			 * get the textArea that this toolbar is controlling
@@ -224,7 +234,7 @@
 				if (selectionState.absoluteStart != -1 && selectionState.absoluteEnd != -1)
 				{
 					var range:ElementRange = ElementRange.createElementRange(selectionState.textFlow, selectionState.absoluteStart, selectionState.absoluteEnd);
-					linkText.activeFlow = _textArea.textFlow;
+					linkText.textArea = _textArea;
 					linkText.update(range);
 				}
 			}
@@ -324,6 +334,13 @@
 				}
 			}
 
+			private function handleLinkSelectedChange():void
+			{
+				_linkSelected = linkText.linkSelected;
+				this.dispatchEvent(new Event("linkSelectedChange"));
+
+			}
+
 			private function isWhitespace(charCode:uint):Boolean
 			{
 				return charCode === 0x0009 || charCode === 0x000A || charCode === 0x000B || charCode === 0x000C || charCode === 0x000D || charCode === 0x0020 || charCode === 0x0085 || charCode === 0x00A0 || charCode === 0x1680 || charCode === 0x180E || charCode === 0x2000 || charCode === 0x2001 || charCode === 0x2002 || charCode === 0x2003 || charCode === 0x2004 || charCode === 0x2005 || charCode === 0x2006 || charCode === 0x2007 || charCode === 0x2008 || charCode === 0x2009 || charCode === 0x200A || charCode === 0x2028 || charCode === 0x2029 || charCode === 0x202F || charCode === 0x205F || charCode === 0x3000;
@@ -354,10 +371,10 @@
 			<s:SolidColorStroke color="#B3C2B8"/>
 		</s:stroke>
 	</s:Line>
-	<s:ButtonBar id="txtAlignBB" width="80" arrowKeysWrapFocus="true" change="handleTextAlignClick(event);" mouseFocusEnabled="false">
+	<s:ButtonBar id="txtAlignBB" width="80" arrowKeysWrapFocus="true" change="handleTextAlignClick(event);" mouseFocusEnabled="false" skinClass="com.piematrix.sparkRichTextEditor.ToolBarButtonBarSkin">
 		<s:dataProvider>
 			<s:ArrayList>
-				<fx:Object icon="{LEFT_IMAGE}" value="{TextAlign.LEFT}"/>
+				<fx:Object icon="{LEFT_IMAGE}" toolTip="Left align text" value="{TextAlign.LEFT}"/>
 				<fx:Object icon="{CENTER_IMAGE}" toolTip="Center text" value="{TextAlign.CENTER}"/>
 				<fx:Object icon="{RIGHT_IMAGE}" toolTip="Right align text" value="{TextAlign.RIGHT}"/>
 				<fx:Object icon="{JUSTIFY_IMAGE}" toolTip="Justify text" value="{TextAlign.JUSTIFY}"/>
@@ -370,5 +387,6 @@
 			<s:SolidColorStroke color="#B3C2B8"/>
 		</s:stroke>
 	</s:Line>
-	<sparkRichTextEditor:LinkInput id="linkText" width="100%" enabled="false" keyDown="handleLinkKeydown(event)" minWidth="100" mouseFocusEnabled="false" toolTip="Hyperlink text"/>
+	<sparkRichTextEditor:LinkInput id="linkText" width="100%" enabled="false" keyDown="handleLinkKeydown(event)" linkSelectedChange="handleLinkSelectedChange()" minWidth="100"
+								   mouseFocusEnabled="false" toolTip="Hyperlink text"/>
 </s:HGroup>
