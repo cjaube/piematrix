@@ -11,11 +11,17 @@
 
 			private var _textArea:TextArea;
 
+			/**
+			 *  The textArea that this component interacts with
+			 */
 			public function get textArea():TextArea
 			{
 				return _textArea;
 			}
 
+			/**
+			 *  @private
+			 */
 			public function set textArea(value:TextArea):void
 			{
 				if (_textArea)
@@ -30,7 +36,10 @@
 				}
 			}
 
-			protected function handleClick(e:Event):void
+			/**
+			 *  @private
+			 */
+			private function handleClick(e:Event):void
 			{
 				var format:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
 				format.color = this.current.color;
@@ -39,6 +48,9 @@
 				_textArea.dispatchEvent(new TextOperationEvent(TextOperationEvent.CHANGE));
 			}
 
+			/**
+			 *  @private
+			 */
 			private function handleSelectionChange(e:FlexEvent = null):void
 			{
 				var format:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);

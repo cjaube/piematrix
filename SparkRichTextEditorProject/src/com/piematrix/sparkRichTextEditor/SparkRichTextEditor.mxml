@@ -40,6 +40,9 @@
 			private var _textFlow:TextFlow;
 
 			[Bindable("change")]
+			/**
+			 *  The htmlText property is here for convenience. It converts the textFlow to TextConverter.TEXT_FIELD_HTML_FORMAT.
+			 */
 			public function get htmlText():String
 			{
 				if (textArea)
@@ -52,6 +55,9 @@
 				}
 			}
 
+			/**
+			 *  @private
+			 */
 			public function set htmlText(value:String):void
 			{
 				_htmlText = value;
@@ -61,6 +67,9 @@
 				}
 			}
 
+			/**
+			 *  @private
+			 */
 			public override function styleChanged(styleProp:String):void
 			{
 				super.styleChanged(styleProp);
@@ -69,6 +78,9 @@
 			}
 
 			[Bindable("change")]
+			/**
+			 *  The text in the textArea
+			 */
 			public function get text():String
 			{
 				if (textArea)
@@ -81,6 +93,9 @@
 				}
 			}
 
+			/**
+			 *  @private
+			 */
 			public function set text(value:String):void
 			{
 				_text = value;
@@ -91,6 +106,9 @@
 			}
 
 			[Bindable("change")]
+			/**
+			 *  The textFlow
+			 */
 			public function get textFlow():TextFlow
 			{
 				if (textArea)
@@ -103,6 +121,9 @@
 				}
 			}
 
+			/**
+			 *  @private
+			 */
 			public function set textFlow(value:TextFlow):void
 			{
 				_textFlow = value;
@@ -112,6 +133,9 @@
 				}
 			}
 
+			/**
+			 *  @private
+			 */
 			protected override function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
@@ -125,6 +149,9 @@
 				}
 			}
 
+			/**
+			 *  @private
+			 */
 			private function creationComplete():void
 			{
 				if (_htmlText)
@@ -137,6 +164,9 @@
 				}
 			}
 
+			/**
+			 *  @private
+			 */
 			private function handleChange(e:Event):void
 			{
 				this.dispatchEvent(e);

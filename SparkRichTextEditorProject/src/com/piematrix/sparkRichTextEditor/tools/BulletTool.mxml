@@ -20,11 +20,17 @@
 
 			private var _textArea:TextArea;
 
+			/**
+			 *  The textArea that this component interacts with
+			 */
 			public function get textArea():TextArea
 			{
 				return _textArea;
 			}
 
+			/**
+			 *  @private
+			 */
 			public function set textArea(value:TextArea):void
 			{
 				if (_textArea)
@@ -39,7 +45,28 @@
 				}
 			}
 
-			protected function handleClick(e:MouseEvent):void
+			/**
+			 *  @private
+			 */
+			private function getSelectionState():SelectionState
+			{
+				if (_textArea.textFlow)
+				{
+					var selectionManager:ISelectionManager = _textArea.textFlow.interactionManager;
+					var selectionState:SelectionState = selectionManager.getSelectionState();
+					var startleaf:FlowLeafElement = _textArea.textFlow.findLeaf(selectionState.absoluteStart);
+					var endleaf:FlowLeafElement = _textArea.textFlow.findLeaf(selectionState.absoluteEnd);
+					selectionState.absoluteStart = startleaf.getAbsoluteStart();
+					selectionState.absoluteEnd = endleaf.getAbsoluteStart() + endleaf.parentRelativeEnd - endleaf.parentRelativeStart;
+					return selectionState;
+				}
+				return null;
+			}
+
+			/**
+			 *  @private
+			 */
+			private function handleClick(e:MouseEvent):void
 			{
 				if (_textArea.textFlow && _textArea.textFlow.interactionManager is IEditManager)
 				{
@@ -101,30 +128,9 @@
 				}
 			}
 
-			protected function removeList(listElement:ListElement):void
-			{
-				var editManager:IEditManager = IEditManager(_textArea.textFlow.interactionManager);
-
-				var target:FlowGroupElement = listElement.parent;
-				var targetIndex:int = target.getChildIndex(listElement);
-				editManager.moveChildren(listElement, 0, listElement.numChildren, target, targetIndex);
-			}
-
-			private function getSelectionState():SelectionState
-			{
-				if (_textArea.textFlow)
-				{
-					var selectionManager:ISelectionManager = _textArea.textFlow.interactionManager;
-					var selectionState:SelectionState = selectionManager.getSelectionState();
-					var startleaf:FlowLeafElement = _textArea.textFlow.findLeaf(selectionState.absoluteStart);
-					var endleaf:FlowLeafElement = _textArea.textFlow.findLeaf(selectionState.absoluteEnd);
-					selectionState.absoluteStart = startleaf.getAbsoluteStart();
-					selectionState.absoluteEnd = endleaf.getAbsoluteStart() + endleaf.parentRelativeEnd - endleaf.parentRelativeStart;
-					return selectionState;
-				}
-				return null;
-			}
-
+			/**
+			 *  @private
+			 */
 			private function handleSelectionChange(e:FlexEvent = null):void
 			{
 				if (_textArea.textFlow)
@@ -151,6 +157,18 @@
 
 				}
 
+			}
+
+			/**
+			 *  @private
+			 */
+			private function removeList(listElement:ListElement):void
+			{
+				var editManager:IEditManager = IEditManager(_textArea.textFlow.interactionManager);
+
+				var target:FlowGroupElement = listElement.parent;
+				var targetIndex:int = target.getChildIndex(listElement);
+				editManager.moveChildren(listElement, 0, listElement.numChildren, target, targetIndex);
 			}
 		]]>
 	</fx:Script>

@@ -28,11 +28,17 @@
 				return _linkSelected;
 			}
 
+			/**
+			 *  The textArea that this component interacts with
+			 */
 			public function get textArea():TextArea
 			{
 				return _textArea;
 			}
 
+			/**
+			 *  @private
+			 */
 			public function set textArea(value:TextArea):void
 			{
 				if (_textArea)
@@ -50,7 +56,8 @@
 			}
 
 			/**
-			 * Apply the link to the selected text
+			 *  @private
+			 *  Apply the link to the selected text
 			 */
 			private function apply(e:Event = null):void
 			{
@@ -61,7 +68,8 @@
 			}
 
 			/**
-			 * Actually apply the link to the selection. Repair the formating in the process.
+			 *  @private
+			 *  Actually apply the link to the selection. Repair the formating in the process.
 			 */
 			private function applyLink(href:String, target:String = null, extendToLinkBoundary:Boolean = false, operationState:SelectionState = null):void
 			{
@@ -80,7 +88,8 @@
 			}
 
 			/**
-			 * Automatically add a link if the previous text looks like a link
+			 *  @private
+			 *  Automatically add a link if the previous text looks like a link
 			 */
 			private function checkLinks():void
 			{
@@ -121,6 +130,9 @@
 				}
 			}
 
+			/**
+			 *  @private
+			 */
 			private function handleKeyDown(e:KeyboardEvent):void
 			{
 				if (e.keyCode == Keyboard.ENTER || e.keyCode == Keyboard.SPACE || e.keyCode == Keyboard.TAB)
@@ -129,6 +141,9 @@
 				}
 			}
 
+			/**
+			 *  @private
+			 */
 			private function handleLinkKeydown(e:KeyboardEvent):void
 			{
 				e.stopImmediatePropagation();
@@ -139,7 +154,8 @@
 			}
 
 			/**
-			 * Update the text display based on the selected range
+			 *  @private
+			 *  Update the text display based on the selected range
 			 */
 			private function handleSelectionChange(e:FlexEvent = null):void
 			{
@@ -197,7 +213,8 @@
 			}
 
 			/**
-			 * Return true if the character is a whitespace character
+			 *  @private
+			 *  Return true if the character is a whitespace character
 			 */
 			private function isWhitespace(charCode:uint):Boolean
 			{

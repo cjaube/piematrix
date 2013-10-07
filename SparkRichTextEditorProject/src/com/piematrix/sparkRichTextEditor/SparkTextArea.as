@@ -22,13 +22,11 @@
 package com.piematrix.sparkRichTextEditor
 {
 	import flash.events.Event;
-	
-	import spark.components.TextArea;
-	import spark.events.TextOperationEvent;
-	
 	import flashx.textLayout.conversion.ConversionType;
 	import flashx.textLayout.conversion.TextConverter;
 	import flashx.textLayout.elements.TextFlow;
+	import spark.components.TextArea;
+	import spark.events.TextOperationEvent;
 
 	public class SparkTextArea extends TextArea
 	{
@@ -43,6 +41,9 @@ package com.piematrix.sparkRichTextEditor
 		}
 
 		[Bindable("change")]
+		/**
+		 *  The htmlText property is here for convenience. It converts the textFlow to TextConverter.TEXT_FIELD_HTML_FORMAT.
+		 */
 		public function get htmlText():String
 		{
 			if (_htmlTextChanged)
@@ -60,6 +61,9 @@ package com.piematrix.sparkRichTextEditor
 			return _htmlText;
 		}
 
+		/**
+		 *  @private
+		 */
 		public function set htmlText(value:String):void
 		{
 			if (htmlText != value)
@@ -72,6 +76,9 @@ package com.piematrix.sparkRichTextEditor
 			}
 		}
 
+		/**
+		 *  @private
+		 */
 		protected override function createChildren():void
 		{
 			super.createChildren();
@@ -81,6 +88,9 @@ package com.piematrix.sparkRichTextEditor
 			}
 		}
 
+		/**
+		 *  @private
+		 */
 		private function updateHTMLText(e:Event):void
 		{
 			_htmlTextChanged = true;

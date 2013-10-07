@@ -25,11 +25,17 @@
 				}
 			}
 
+			/**
+			 *  The textArea that this component interacts with
+			 */
 			public function get textArea():TextArea
 			{
 				return _textArea;
 			}
 
+			/**
+			 *  @private
+			 */
 			public function set textArea(value:TextArea):void
 			{
 				if (_textArea)
@@ -44,7 +50,10 @@
 				}
 			}
 
-			protected function handleChange(e:Event):void
+			/**
+			 *  @private
+			 */
+			private function handleChange(e:Event):void
 			{
 				var format:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
 				format.fontFamily = this.selectedItem;
@@ -53,6 +62,9 @@
 				_textArea.dispatchEvent(new TextOperationEvent(TextOperationEvent.CHANGE));
 			}
 
+			/**
+			 *  @private
+			 */
 			private function handleSelectionChange(e:FlexEvent = null):void
 			{
 				var format:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
