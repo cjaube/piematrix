@@ -1,4 +1,4 @@
-package com.piematrix.sparkRichTextEditor.sparkColorPicker
+package com.piematrix.sparkRichTextEditor.tools.sparkColorPicker
 {
 	import mx.core.IFlexDisplayObject;
 	import mx.managers.IFocusManagerContainer;

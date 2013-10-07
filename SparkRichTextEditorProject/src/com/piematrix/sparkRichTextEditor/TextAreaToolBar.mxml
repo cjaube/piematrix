@@ -21,7 +21,8 @@
 * SOFTWARE.
 -->
 <s:HGroup gap="6" xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:s="library://ns.adobe.com/flex/spark"
-		  xmlns:sparkColorPicker="com.piematrix.sparkRichTextEditor.sparkColorPicker.*" xmlns:sparkRichTextEditor="com.piematrix.sparkRichTextEditor.*">
+		  xmlns:sparkColorPicker="com.piematrix.sparkRichTextEditor.tools.sparkColorPicker.*" xmlns:sparkRichTextEditor="com.piematrix.sparkRichTextEditor.*"
+		  xmlns:tools="com.piematrix.sparkRichTextEditor.tools.*">
 	<fx:Metadata>
 		[Event(name="linkSelectedChange", type="flash.events.Event")]
 	</fx:Metadata>
@@ -371,7 +372,8 @@
 			<s:SolidColorStroke color="#B3C2B8"/>
 		</s:stroke>
 	</s:Line>
-	<s:ButtonBar id="txtAlignBB" width="80" arrowKeysWrapFocus="true" change="handleTextAlignClick(event);" mouseFocusEnabled="false" skinClass="com.piematrix.sparkRichTextEditor.ToolBarButtonBarSkin">
+	<s:ButtonBar id="txtAlignBB" width="80" arrowKeysWrapFocus="true" change="handleTextAlignClick(event);" mouseFocusEnabled="false"
+				 skinClass="com.piematrix.sparkRichTextEditor.tools.ToolBarButtonBarSkin">
 		<s:dataProvider>
 			<s:ArrayList>
 				<fx:Object icon="{LEFT_IMAGE}" toolTip="Left align text" value="{TextAlign.LEFT}"/>
@@ -387,6 +389,6 @@
 			<s:SolidColorStroke color="#B3C2B8"/>
 		</s:stroke>
 	</s:Line>
-	<sparkRichTextEditor:LinkInput id="linkText" width="100%" enabled="false" keyDown="handleLinkKeydown(event)" linkSelectedChange="handleLinkSelectedChange()" minWidth="100"
-								   mouseFocusEnabled="false" toolTip="Hyperlink text"/>
+	<tools:LinkInput id="linkText" width="100%" enabled="false" keyDown="handleLinkKeydown(event)" linkSelectedChange="handleLinkSelectedChange()" minWidth="100" mouseFocusEnabled="false"
+					 toolTip="Hyperlink text"/>
 </s:HGroup>

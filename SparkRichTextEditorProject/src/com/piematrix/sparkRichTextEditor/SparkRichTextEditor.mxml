@@ -21,7 +21,7 @@
 * SOFTWARE.
 -->
 <s:Group creationComplete="creationComplete()" xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:s="library://ns.adobe.com/flex/spark"
-		 xmlns:sparkRichTextEditor="com.piematrix.sparkRichTextEditor.*">
+		 xmlns:sparkRichTextEditor="com.piematrix.sparkRichTextEditor.*" xmlns:tools="com.piematrix.sparkRichTextEditor.tools.*">
 	<fx:Metadata>
 		[Event(name="change", type="flash.events.Event")]
 		[Style(name="borderColor", inherit="no", type="unit")]

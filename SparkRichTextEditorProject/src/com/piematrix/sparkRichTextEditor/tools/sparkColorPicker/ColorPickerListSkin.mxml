@@ -26,7 +26,7 @@
 	  @productversion Flex 4
 -->
 <s:SparkSkin alpha.disabled=".5" currentStateChange="if (currentState == 'open') prepOpenState()" minWidth="24" xmlns:fb="http://ns.adobe.com/flashbuilder/2009"
-			 xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:local="*" xmlns:s="library://ns.adobe.com/flex/spark" xmlns:sparkColorPicker="com.piematrix.sparkRichTextEditor.sparkColorPicker.*">
+			 xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:local="*" xmlns:s="library://ns.adobe.com/flex/spark" xmlns:sparkColorPicker="com.piematrix.sparkRichTextEditor.tools.sparkColorPicker.*">
 
 	<!-- host component -->
 	<fx:Metadata>
@@ -207,7 +207,7 @@
 	<!---  The default skin is DropDownListButtonSkin.
 			@copy spark.components.supportClasses.DropDownListBase#openButton
 			@see spark.skins.spark.DropDownListButtonSkin -->
-	<s:Button id="openButton" bottom="0" focusEnabled="false" left="0" right="0" skinClass="com.piematrix.sparkRichTextEditor.sparkColorPicker.ColorPickerListButtonSkin" top="0"/>
+	<s:Button id="openButton" bottom="0" focusEnabled="false" left="0" right="0" skinClass="com.piematrix.sparkRichTextEditor.tools.sparkColorPicker.ColorPickerListButtonSkin" top="0"/>
 
 	<!--- @copy spark.components.DropDownList#labelDisplay -->
 	<s:TextInput id="textInput" width="0" bottom="0" left="0" skinClass="spark.skins.spark.ComboBoxTextInputSkin" top="0" visible="false"/>

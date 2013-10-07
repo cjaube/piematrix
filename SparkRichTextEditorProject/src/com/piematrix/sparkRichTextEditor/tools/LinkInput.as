@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.piematrix.sparkRichTextEditor.textAreaToolBar
+package com.piematrix.sparkRichTextEditor.tools
 {
 	import flash.events.Event;
 	import flash.events.FocusEvent;
