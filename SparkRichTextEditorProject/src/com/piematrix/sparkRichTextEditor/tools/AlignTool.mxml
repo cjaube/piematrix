@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ButtonBar width="80" arrowKeysWrapFocus="true" change="handleChange(event);" mouseFocusEnabled="false" skinClass="com.piematrix.sparkRichTextEditor.tools.skins.ToolBarButtonBarSkin"
+			 xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:s="library://ns.adobe.com/flex/spark">
+	<fx:Script>
+		<![CDATA[
+			import flashx.textLayout.formats.TextAlign;
+			import flashx.textLayout.formats.TextLayoutFormat;
+			import mx.events.FlexEvent;
+			import spark.components.TextArea;
+			import spark.events.TextOperationEvent;
+
+			[Embed(source = "/images/textToolBar/center.png")]
+			private const CENTER_IMAGE:Class;
+			[Embed(source = "/images/textToolBar/justify.png")]
+			private const JUSTIFY_IMAGE:Class;
+			[Embed(source = "/images/textToolBar/left.png")]
+			private const LEFT_IMAGE:Class;
+			[Embed(source = "/images/textToolBar/right.png")]
+			private const RIGHT_IMAGE:Class;
+
+			private var _textArea:TextArea;
+
+			public function get textArea():TextArea
+			{
+				return _textArea;
+			}
+
+			public function set textArea(value:TextArea):void
+			{
+				if (_textArea)
+				{
+					_textArea.removeEventListener(FlexEvent.SELECTION_CHANGE, handleSelectionChange);
+				}
+				_textArea = value;
+				if (_textArea)
+				{
+					_textArea.addEventListener(FlexEvent.SELECTION_CHANGE, handleSelectionChange, false, 0, true);
+					handleSelectionChange();
+				}
+			}
+
+			protected function handleChange(e:Event):void
+			{
+				if (this.selectedItem)
+				{
+					var txtLayFmt:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+					txtLayFmt.textAlign = this.selectedItem.value;
+					_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+					_textArea.setFocus();
+					_textArea.dispatchEvent(new TextOperationEvent(TextOperationEvent.CHANGE));
+				}
+			}
+
+			private function handleSelectionChange(e:FlexEvent = null):void
+			{
+				var format:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+
+				switch (format.textAlign)
+				{
+					case TextAlign.LEFT:
+						this.selectedIndex = 0;
+						break;
+					case TextAlign.CENTER:
+						this.selectedIndex = 1;
+						break;
+					case TextAlign.RIGHT:
+						this.selectedIndex = 2;
+						break;
+					case TextAlign.JUSTIFY:
+						this.selectedIndex = 3;
+						break;
+					default:
+						this.selectedIndex = -1;
+						break;
+				}
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:dataProvider>
+		<s:ArrayList>
+			<fx:Object icon="{LEFT_IMAGE}" toolTip="Left align text" value="{TextAlign.LEFT}"/>
+			<fx:Object icon="{CENTER_IMAGE}" toolTip="Center text" value="{TextAlign.CENTER}"/>
+			<fx:Object icon="{RIGHT_IMAGE}" toolTip="Right align text" value="{TextAlign.RIGHT}"/>
+			<fx:Object icon="{JUSTIFY_IMAGE}" toolTip="Justify text" value="{TextAlign.JUSTIFY}"/>
+		</s:ArrayList>
+	</s:dataProvider>
+</s:ButtonBar>

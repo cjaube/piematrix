@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<sparkColorPicker:SparkColorPicker height="21" width="20" change="{handleClick(event)}" mouseFocusEnabled="false" toolTip="Color text" xmlns:fx="http://ns.adobe.com/mxml/2009"
+								   xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:s="library://ns.adobe.com/flex/spark"
+								   xmlns:sparkColorPicker="com.piematrix.sparkRichTextEditor.tools.sparkColorPicker.*">
+	<fx:Script>
+		<![CDATA[
+			import flashx.textLayout.formats.TextLayoutFormat;
+			import mx.events.FlexEvent;
+			import spark.components.TextArea;
+			import spark.events.TextOperationEvent;
+
+			private var _textArea:TextArea;
+
+			public function get textArea():TextArea
+			{
+				return _textArea;
+			}
+
+			public function set textArea(value:TextArea):void
+			{
+				if (_textArea)
+				{
+					_textArea.removeEventListener(FlexEvent.SELECTION_CHANGE, handleSelectionChange);
+				}
+				_textArea = value;
+				if (_textArea)
+				{
+					_textArea.addEventListener(FlexEvent.SELECTION_CHANGE, handleSelectionChange, false, 0, true);
+					handleSelectionChange();
+				}
+			}
+
+			protected function handleClick(e:Event):void
+			{
+				var format:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+				format.color = this.current.color;
+				_textArea.setFormatOfRange(format, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+				_textArea.setFocus();
+				_textArea.dispatchEvent(new TextOperationEvent(TextOperationEvent.CHANGE));
+			}
+
+			private function handleSelectionChange(e:FlexEvent = null):void
+			{
+				var format:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+				this.current.color = format.color;
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+</sparkColorPicker:SparkColorPicker>

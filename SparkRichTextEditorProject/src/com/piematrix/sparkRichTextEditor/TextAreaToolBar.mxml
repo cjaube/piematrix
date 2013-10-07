@@ -28,44 +28,10 @@
 	</fx:Metadata>
 	<fx:Script>
 		<![CDATA[
-			import flash.text.engine.FontPosture;
-			import flash.text.engine.FontWeight;
-			import flashx.textLayout.edit.ElementRange;
-			import flashx.textLayout.edit.IEditManager;
-			import flashx.textLayout.edit.SelectionState;
-			import flashx.textLayout.elements.FlowGroupElement;
-			import flashx.textLayout.elements.FlowLeafElement;
-			import flashx.textLayout.elements.ListElement;
-			import flashx.textLayout.formats.TextAlign;
-			import flashx.textLayout.formats.TextDecoration;
-			import flashx.textLayout.formats.TextLayoutFormat;
-			import mx.events.FlexEvent;
 			import spark.components.TextArea;
-			import spark.events.IndexChangeEvent;
-			import spark.events.TextOperationEvent;
-
-			[Embed(source = "/images/textToolBar/bold.png")]
-			private const BOLD_IMAGE:Class;
-			[Embed(source = "/images/textToolBar/bullet.png")]
-			private const BULLET_IMAGE:Class;
-			[Embed(source = "/images/textToolBar/center.png")]
-			private const CENTER_IMAGE:Class;
-			[Embed(source = "/images/textToolBar/italic.png")]
-			private const ITALIC_IMAGE:Class;
-			[Embed(source = "/images/textToolBar/justify.png")]
-			private const JUSTIFY_IMAGE:Class;
-			[Embed(source = "/images/textToolBar/left.png")]
-			private const LEFT_IMAGE:Class;
-			[Embed(source = "/images/textToolBar/link.png")]
-			private const LINK_IMAGE:Class;
-			[Embed(source = "/images/textToolBar/right.png")]
-			private const RIGHT_IMAGE:Class;
-			[Embed(source = "/images/textToolBar/underline.png")]
-			private const UNDERLINE_IMAGE:Class;
 
 			private var _linkSelected:Boolean = false;
 			private var _textArea:TextArea;
-			private var _urlRegExpression:RegExp = new RegExp("^(https?://(www\\.)?|www\\.)[-._~:/?#\\[\\]@!$&'()*+,;=a-z0-9]+$", 'i');
 
 			[Bindable("linkSelectedChange")]
 			public function get linkSelected():Boolean
@@ -76,6 +42,7 @@
 			/**
 			 * get the textArea that this toolbar is controlling
 			 */
+			[Bindable]
 			public function get textArea():TextArea
 			{
 				return _textArea;
@@ -86,309 +53,39 @@
 			 */
 			public function set textArea(value:TextArea):void
 			{
-				if (_textArea)
-				{
-					_textArea.removeEventListener(FlexEvent.SELECTION_CHANGE, handleSelectionChange);
-					_textArea.removeEventListener(KeyboardEvent.KEY_DOWN, handleKeyDown);
-				}
 				_textArea = value;
-				if (_textArea)
-				{
-					_textArea.addEventListener(FlexEvent.SELECTION_CHANGE, handleSelectionChange, false, 0, true);
-					_textArea.addEventListener(KeyboardEvent.KEY_DOWN, handleKeyDown, false, 0, true);
-				}
 			}
 
-			protected function handleBoldClick(e:MouseEvent):void
+			private function handleLinkSelectedChange(e:Event):void
 			{
-				var txtLayFmt:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
-				txtLayFmt.fontWeight = (txtLayFmt.fontWeight == FontWeight.BOLD) ? FontWeight.NORMAL : FontWeight.BOLD;
-				_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
-				_textArea.setFocus();
-				_textArea.dispatchEvent(new TextOperationEvent(TextOperationEvent.CHANGE));
-			}
-
-			protected function handleBulletClick(e:MouseEvent):void
-			{
-				if (_textArea.textFlow && _textArea.textFlow.interactionManager is IEditManager)
-				{
-					var editManager:IEditManager = IEditManager(_textArea.textFlow.interactionManager);
-					var doCreate:Boolean = true;
-					var selectionState:SelectionState = editManager.getSelectionState();
-					var startleaf:FlowLeafElement = _textArea.textFlow.findLeaf(selectionState.absoluteStart);
-					var endleaf:FlowLeafElement = _textArea.textFlow.findLeaf(selectionState.absoluteEnd);
-					selectionState.absoluteStart = startleaf.getAbsoluteStart();
-					selectionState.absoluteEnd = endleaf.getAbsoluteStart() + endleaf.parentRelativeEnd - endleaf.parentRelativeStart;
-					var listElements:Array = _textArea.textFlow.getElementsByTypeName("list");
-					for each (var listElement:ListElement in listElements)
-					{
-						var start:int = listElement.getAbsoluteStart();
-						var end:int = listElement.getAbsoluteStart() + listElement.parentRelativeEnd - listElement.parentRelativeStart;
-						if (selectionState.absoluteStart == start && selectionState.absoluteEnd == end)
-						{ //Same
-							removeList(listElement);
-							doCreate = false;
-							break;
-						}
-						else if (selectionState.absoluteStart == start && selectionState.absoluteEnd <= end)
-						{ //Inside touching start
-							selectionState = new SelectionState(_textArea.textFlow, end, selectionState.absoluteEnd);
-							removeList(listElement);
-							editManager.createList(null, null, selectionState);
-							doCreate = false;
-							break;
-						}
-						else if (selectionState.absoluteStart >= start && selectionState.absoluteEnd == end)
-						{ //Inside touching end
-							selectionState = new SelectionState(_textArea.textFlow, selectionState.absoluteStart, start);
-							removeList(listElement);
-							editManager.createList(null, null, selectionState);
-							doCreate = false;
-							break;
-						}
-						else if (selectionState.absoluteStart >= start && selectionState.absoluteEnd <= end)
-						{ //Inside
-							var firstRange:SelectionState = new SelectionState(_textArea.textFlow, selectionState.absoluteStart, start);
-							var secondRange:SelectionState = new SelectionState(_textArea.textFlow, end, selectionState.absoluteEnd);
-							removeList(listElement);
-							editManager.createList(null, null, firstRange);
-							editManager.createList(null, null, secondRange);
-							doCreate = false;
-							break;
-						}
-						else if ((selectionState.absoluteStart >= start && selectionState.absoluteStart <= end) || (selectionState.absoluteEnd >= start && selectionState.absoluteEnd <= end))
-						{ //Overlap. Include this list in the selection
-							selectionState = new SelectionState(_textArea.textFlow, Math.min(start, selectionState.absoluteStart), Math.max(end, selectionState.absoluteEnd));
-							removeList(listElement);
-						}
-						else if (selectionState.absoluteStart <= start && selectionState.absoluteEnd >= end)
-						{ //surround. Remove this list since it will get added back in, only expanded.
-							removeList(listElement);
-						}
-					}
-					if (doCreate)
-					{
-						IEditManager(_textArea.textFlow.interactionManager).createList(null, null, selectionState);
-					}
-					_textArea.textFlow.interactionManager.setFocus();
-				}
-			}
-
-			protected function handleColorClick(e:IndexChangeEvent):void
-			{
-				var txtLayFmt:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
-				txtLayFmt.color = colorCP.current.color;
-				_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
-				_textArea.setFocus();
-				_textArea.dispatchEvent(new TextOperationEvent(TextOperationEvent.CHANGE));
-			}
-
-			protected function handleFontClick(e:IndexChangeEvent):void
-			{
-				var txtLayFmt:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
-				txtLayFmt.fontFamily = fontDDL.selectedItem;
-				_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
-				_textArea.setFocus();
-				_textArea.dispatchEvent(new TextOperationEvent(TextOperationEvent.CHANGE));
-			}
-
-			protected function handleItalicsClick(e:MouseEvent):void
-			{
-				var txtLayFmt:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
-				txtLayFmt.fontStyle = (txtLayFmt.fontStyle == FontPosture.ITALIC) ? FontPosture.NORMAL : FontPosture.ITALIC;
-				_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
-				_textArea.setFocus();
-				_textArea.dispatchEvent(new TextOperationEvent(TextOperationEvent.CHANGE));
-			}
-
-			protected function handleSelectionChange(e:FlexEvent):void
-			{
-				var txtLayFmt:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
-				fontDDL.selectedItem = txtLayFmt.fontFamily;
-				sizeDDL.selectedItem = txtLayFmt.fontSize;
-				boldBtn.selected = (txtLayFmt.fontWeight == FontWeight.BOLD);
-				italBtn.selected = (txtLayFmt.fontStyle == FontPosture.ITALIC);
-				underBtn.selected = (txtLayFmt.textDecoration == TextDecoration.UNDERLINE);
-				colorCP.current.color = txtLayFmt.color;
-
-				switch (txtLayFmt.textAlign)
-				{
-					case TextAlign.LEFT:
-						txtAlignBB.selectedIndex = 0;
-						break;
-					case TextAlign.CENTER:
-						txtAlignBB.selectedIndex = 1;
-						break;
-					case TextAlign.RIGHT:
-						txtAlignBB.selectedIndex = 2;
-						break;
-					case TextAlign.JUSTIFY:
-						txtAlignBB.selectedIndex = 3;
-						break;
-					default:
-						txtAlignBB.selectedIndex = -1;
-						break;
-				}
-				linkText.enabled = _textArea.selectionAnchorPosition != _textArea.selectionActivePosition;
-
-				var selectionState:SelectionState = _textArea.textFlow.interactionManager.getSelectionState();
-				if (selectionState.absoluteStart != -1 && selectionState.absoluteEnd != -1)
-				{
-					var range:ElementRange = ElementRange.createElementRange(selectionState.textFlow, selectionState.absoluteStart, selectionState.absoluteEnd);
-					linkText.textArea = _textArea;
-					linkText.update(range);
-				}
-			}
-
-			protected function handleSizeClick(e:IndexChangeEvent):void
-			{
-				var txtLayFmt:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
-				txtLayFmt.fontSize = sizeDDL.selectedItem;
-				_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
-				_textArea.setFocus();
-				_textArea.dispatchEvent(new TextOperationEvent(TextOperationEvent.CHANGE));
-			}
-
-			protected function handleTextAlignClick(e:IndexChangeEvent):void
-			{
-				if (txtAlignBB.selectedItem)
-				{
-					var txtLayFmt:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
-					txtLayFmt.textAlign = txtAlignBB.selectedItem.value;
-					_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
-					_textArea.setFocus();
-					_textArea.dispatchEvent(new TextOperationEvent(TextOperationEvent.CHANGE));
-				}
-			}
-
-			protected function handleUnderlineClick(e:MouseEvent):void
-			{
-				var txtLayFmt:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
-				txtLayFmt.textDecoration = (txtLayFmt.textDecoration == TextDecoration.UNDERLINE) ? TextDecoration.NONE : TextDecoration.UNDERLINE;
-				_textArea.setFormatOfRange(txtLayFmt, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
-				_textArea.setFocus();
-				_textArea.dispatchEvent(new TextOperationEvent(TextOperationEvent.CHANGE));
-			}
-
-			protected function removeList(listElement:ListElement):void
-			{
-				var editManager:IEditManager = IEditManager(_textArea.textFlow.interactionManager);
-
-				var target:FlowGroupElement = listElement.parent;
-				var targetIndex:int = target.getChildIndex(listElement);
-				editManager.moveChildren(listElement, 0, listElement.numChildren, target, targetIndex);
-			}
-
-			private function checkLinks():void
-			{
-				var position:int = _textArea.selectionActivePosition;
-				//Find the firt non-whitespace character
-				while (position > 0)
-				{
-					if (!isWhitespace(_textArea.textFlow.getCharCodeAtPosition(position)))
-					{
-						break;
-					}
-					position--;
-				}
-				//Find the next whitespace character
-				while (position > 0)
-				{
-					if (isWhitespace(_textArea.textFlow.getCharCodeAtPosition(position)))
-					{
-						position++; //Back up one character
-						break;
-					}
-					position--;
-				}
-				var testText:String = _textArea.textFlow.getText(position, _textArea.selectionActivePosition);
-				var result:Array = testText.match(_urlRegExpression);
-				if (result != null && result.length > 0)
-				{
-					if (_textArea.textFlow.interactionManager is IEditManager)
-					{
-						var selectionState:SelectionState = new SelectionState(_textArea.textFlow, position, _textArea.selectionActivePosition);
-						if (testText.substr(0, 3) == "www")
-						{
-							testText = "http://" + testText; //Add a missing 'http://' if needed
-						}
-						IEditManager(_textArea.textFlow.interactionManager).applyLink(testText, "_blank", true, selectionState);
-						_textArea.setFocus();
-					}
-				}
-			}
-
-			private function handleKeyDown(e:KeyboardEvent):void
-			{
-				if (e.keyCode == Keyboard.ENTER || e.keyCode == Keyboard.SPACE || e.keyCode == Keyboard.TAB)
-				{
-					checkLinks();
-				}
-			}
-
-			private function handleLinkKeydown(e:KeyboardEvent):void
-			{
-				e.stopImmediatePropagation();
-				if (e.keyCode == Keyboard.ENTER)
-				{
-					_textArea.setFocus();
-				}
-			}
-
-			private function handleLinkSelectedChange():void
-			{
-				_linkSelected = linkText.linkSelected;
+				_linkSelected = (e.currentTarget as LinkTool).linkSelected;
 				this.dispatchEvent(new Event("linkSelectedChange"));
 
-			}
-
-			private function isWhitespace(charCode:uint):Boolean
-			{
-				return charCode === 0x0009 || charCode === 0x000A || charCode === 0x000B || charCode === 0x000C || charCode === 0x000D || charCode === 0x0020 || charCode === 0x0085 || charCode === 0x00A0 || charCode === 0x1680 || charCode === 0x180E || charCode === 0x2000 || charCode === 0x2001 || charCode === 0x2002 || charCode === 0x2003 || charCode === 0x2004 || charCode === 0x2005 || charCode === 0x2006 || charCode === 0x2007 || charCode === 0x2008 || charCode === 0x2009 || charCode === 0x200A || charCode === 0x2028 || charCode === 0x2029 || charCode === 0x202F || charCode === 0x205F || charCode === 0x3000;
 			}
 		]]>
 	</fx:Script>
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
-	<s:DropDownList id="fontDDL" width="100%" change="callLater(handleFontClick, [event]);" maxWidth="120" minWidth="80" mouseFocusEnabled="false">
-		<s:dataProvider>
-			<s:ArrayList source="[_sans,_serif,_typewriter,Arial,Calibri,Courier,Courier New,Geneva,Georgia,Helvetica,Times New Roman,Times,Trebuchet MS,Verdana]"/>
-		</s:dataProvider>
-	</s:DropDownList>
-	<s:DropDownList id="sizeDDL" width="60" change="callLater(handleSizeClick, [event]);" mouseFocusEnabled="false">
-		<s:dataProvider>
-			<s:ArrayList source="[8,9,10,11,12,14,16,18,20,22,24,26,28,36,48,72]"/>
-		</s:dataProvider>
-	</s:DropDownList>
+	<tools:FontTool textArea="{textArea}"/>
+	<tools:SizeTool textArea="{textArea}"/>
 	<s:HGroup gap="0">
-		<s:ToggleButton id="boldBtn" width="20" click="handleBoldClick(event);" icon="{BOLD_IMAGE}" mouseFocusEnabled="false" toolTip="Bold text"/>
-		<s:ToggleButton id="italBtn" width="20" click="handleItalicsClick(event);" icon="{ITALIC_IMAGE}" mouseFocusEnabled="false" toolTip="Italic text"/>
-		<s:ToggleButton id="underBtn" width="20" click="handleUnderlineClick(event);" icon="{UNDERLINE_IMAGE}" mouseFocusEnabled="false" toolTip="Underline text"/>
+		<tools:BoldTool textArea="{textArea}"/>
+		<tools:ItalicTool textArea="{textArea}"/>
+		<tools:UnderlineTool textArea="{textArea}"/>
 	</s:HGroup>
-	<sparkColorPicker:SparkColorPicker id="colorCP" height="21" width="20" change="{handleColorClick(event);}" mouseFocusEnabled="false" toolTip="Color text"/>
+	<tools:ColorTool textArea="{textArea}"/>
 	<s:Line height="100%">
 		<s:stroke>
 			<s:SolidColorStroke color="#B3C2B8"/>
 		</s:stroke>
 	</s:Line>
-	<s:ButtonBar id="txtAlignBB" width="80" arrowKeysWrapFocus="true" change="handleTextAlignClick(event);" mouseFocusEnabled="false"
-				 skinClass="com.piematrix.sparkRichTextEditor.tools.ToolBarButtonBarSkin">
-		<s:dataProvider>
-			<s:ArrayList>
-				<fx:Object icon="{LEFT_IMAGE}" toolTip="Left align text" value="{TextAlign.LEFT}"/>
-				<fx:Object icon="{CENTER_IMAGE}" toolTip="Center text" value="{TextAlign.CENTER}"/>
-				<fx:Object icon="{RIGHT_IMAGE}" toolTip="Right align text" value="{TextAlign.RIGHT}"/>
-				<fx:Object icon="{JUSTIFY_IMAGE}" toolTip="Justify text" value="{TextAlign.JUSTIFY}"/>
-			</s:ArrayList>
-		</s:dataProvider>
-	</s:ButtonBar>
-	<s:Button id="bulletBtn" width="20" click="handleBulletClick(event);" icon="{BULLET_IMAGE}" mouseFocusEnabled="false" toolTip="Bullet points"/>
+	<tools:AlignTool textArea="{textArea}"/>
+	<tools:BulletTool textArea="{textArea}"/>
 	<s:Line height="100%">
 		<s:stroke>
 			<s:SolidColorStroke color="#B3C2B8"/>
 		</s:stroke>
 	</s:Line>
-	<tools:LinkInput id="linkText" width="100%" enabled="false" keyDown="handleLinkKeydown(event)" linkSelectedChange="handleLinkSelectedChange()" minWidth="100" mouseFocusEnabled="false"
-					 toolTip="Hyperlink text"/>
+	<tools:LinkTool linkSelectedChange="handleLinkSelectedChange(event)" textArea="{textArea}"/>
 </s:HGroup>

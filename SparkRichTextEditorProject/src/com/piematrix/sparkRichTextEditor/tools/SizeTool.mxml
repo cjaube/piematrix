@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:DropDownList width="60" change="callLater(handleChange, [event]);" dataProvider="{null}" mouseFocusEnabled="false" xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:mx="library://ns.adobe.com/flex/mx"
+				xmlns:s="library://ns.adobe.com/flex/spark">
+	<fx:Script>
+		<![CDATA[
+			import flashx.textLayout.formats.TextLayoutFormat;
+			import mx.collections.ArrayList;
+			import mx.collections.IList;
+			import mx.events.FlexEvent;
+			import mx.utils.ArrayUtil;
+			import spark.components.TextArea;
+			import spark.events.TextOperationEvent;
+
+			private const _defaultDataProvider:ArrayList = new ArrayList([8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72]);
+			private var _textArea:TextArea;
+
+			public override function set dataProvider(value:IList):void
+			{
+				if (value == null)
+				{
+					super.dataProvider = _defaultDataProvider;
+				}
+				else
+				{
+					super.dataProvider = value;
+				}
+			}
+
+			public function get textArea():TextArea
+			{
+				return _textArea;
+			}
+
+			public function set textArea(value:TextArea):void
+			{
+				if (_textArea)
+				{
+					_textArea.removeEventListener(FlexEvent.SELECTION_CHANGE, handleSelectionChange);
+				}
+				_textArea = value;
+				if (_textArea)
+				{
+					_textArea.addEventListener(FlexEvent.SELECTION_CHANGE, handleSelectionChange, false, 0, true);
+					handleSelectionChange();
+				}
+			}
+
+			protected function handleChange(e:Event):void
+			{
+				var format:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+				format.fontSize = this.selectedItem;
+				_textArea.setFormatOfRange(format, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+				_textArea.setFocus();
+				_textArea.dispatchEvent(new TextOperationEvent(TextOperationEvent.CHANGE));
+			}
+
+			private function handleSelectionChange(e:FlexEvent = null):void
+			{
+				var format:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
+				this.selectedItem = format.fontSize;
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+</s:DropDownList>
