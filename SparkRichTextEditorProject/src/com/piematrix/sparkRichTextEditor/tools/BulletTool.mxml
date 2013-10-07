@@ -5,6 +5,7 @@
 		<![CDATA[
 			import flash.text.engine.FontWeight;
 			import flashx.textLayout.edit.IEditManager;
+			import flashx.textLayout.edit.ISelectionManager;
 			import flashx.textLayout.edit.SelectionState;
 			import flashx.textLayout.elements.FlowGroupElement;
 			import flashx.textLayout.elements.FlowLeafElement;
@@ -44,11 +45,7 @@
 				{
 					var editManager:IEditManager = IEditManager(_textArea.textFlow.interactionManager);
 					var doCreate:Boolean = true;
-					var selectionState:SelectionState = editManager.getSelectionState();
-					var startleaf:FlowLeafElement = _textArea.textFlow.findLeaf(selectionState.absoluteStart);
-					var endleaf:FlowLeafElement = _textArea.textFlow.findLeaf(selectionState.absoluteEnd);
-					selectionState.absoluteStart = startleaf.getAbsoluteStart();
-					selectionState.absoluteEnd = endleaf.getAbsoluteStart() + endleaf.parentRelativeEnd - endleaf.parentRelativeStart;
+					var selectionState:SelectionState = getSelectionState();
 					var listElements:Array = _textArea.textFlow.getElementsByTypeName("list");
 					for each (var listElement:ListElement in listElements)
 					{
@@ -113,10 +110,47 @@
 				editManager.moveChildren(listElement, 0, listElement.numChildren, target, targetIndex);
 			}
 
+			private function getSelectionState():SelectionState
+			{
+				if (_textArea.textFlow)
+				{
+					var selectionManager:ISelectionManager = _textArea.textFlow.interactionManager;
+					var selectionState:SelectionState = selectionManager.getSelectionState();
+					var startleaf:FlowLeafElement = _textArea.textFlow.findLeaf(selectionState.absoluteStart);
+					var endleaf:FlowLeafElement = _textArea.textFlow.findLeaf(selectionState.absoluteEnd);
+					selectionState.absoluteStart = startleaf.getAbsoluteStart();
+					selectionState.absoluteEnd = endleaf.getAbsoluteStart() + endleaf.parentRelativeEnd - endleaf.parentRelativeStart;
+					return selectionState;
+				}
+				return null;
+			}
+
 			private function handleSelectionChange(e:FlexEvent = null):void
 			{
-				//var format:TextLayoutFormat = _textArea.getFormatOfRange(null, _textArea.selectionAnchorPosition, _textArea.selectionActivePosition);
-				this.selected = false;
+				if (_textArea.textFlow)
+				{
+					var willRemoveBulletsIfClicked:Boolean = false;
+					var selectionState:SelectionState = getSelectionState();
+					var listElements:Array = _textArea.textFlow.getElementsByTypeName("list");
+					for each (var listElement:ListElement in listElements)
+					{
+						var start:int = listElement.getAbsoluteStart();
+						var end:int = listElement.getAbsoluteStart() + listElement.parentRelativeEnd - listElement.parentRelativeStart;
+						if (selectionState.absoluteStart == start && selectionState.absoluteEnd == end)
+						{ //Same
+							willRemoveBulletsIfClicked = true;
+							break;
+						}
+						else if (selectionState.absoluteStart >= start && selectionState.absoluteEnd <= end)
+						{ //Inside
+							willRemoveBulletsIfClicked = true;
+							break;
+						}
+					}
+					this.selected = willRemoveBulletsIfClicked;
+
+				}
+
 			}
 		]]>
 	</fx:Script>
