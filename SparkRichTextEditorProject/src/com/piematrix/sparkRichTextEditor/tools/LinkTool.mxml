@@ -21,6 +21,7 @@
 			private var _urlRegExpression:RegExp = new RegExp("^(https?://(www\\.)?|www\\.)[-._~:/?#\\[\\]@!$&'()*+,;=a-z0-9]+$", 'i');
 			private const defaultLinkText:String = "http://";
 			private var lastRange:ElementRange;
+			private var _linkEl:LinkElement
 
 			[Bindable("linkSelectedChange")]
 			public function get linkSelected():Boolean
@@ -78,9 +79,17 @@
 					//Get the current format
 					var txtLayFmt:TextLayoutFormat = textArea.textFlow.interactionManager.getCommonCharacterFormat();
 					//Set the link
+					var operationState:SelectionState = null;
+					if (_linkEl != null)
+					{
+						operationState = new SelectionState(textArea.textFlow, _linkEl.getAbsoluteStart(), _linkEl.getAbsoluteStart() + _linkEl.textLength);
+					}
 					var linkElement:LinkElement = IEditManager(textArea.textFlow.interactionManager).applyLink(href, target, extendToLinkBoundary, operationState);
 					//Fix the formatting
-					IEditManager(textArea.textFlow.interactionManager).clearFormatOnElement(linkElement.getChildAt(0), txtLayFmt);
+					if(linkElement)
+					{
+						IEditManager(textArea.textFlow.interactionManager).clearFormatOnElement(linkElement.getChildAt(0), txtLayFmt);
+					}
 					var selectionEnd:int = Math.max(textArea.selectionActivePosition, textArea.selectionAnchorPosition);
 					textArea.selectRange(selectionEnd, selectionEnd);
 					IEditManager(textArea.textFlow.interactionManager).applyLeafFormat(txtLayFmt);
@@ -159,8 +168,6 @@
 			 */
 			private function handleSelectionChange(e:FlexEvent = null):void
 			{
-				enabled = _textArea.selectionAnchorPosition != _textArea.selectionActivePosition;
-
 				var selectionState:SelectionState = _textArea.textFlow.interactionManager.getSelectionState();
 				if (selectionState.absoluteStart != -1 && selectionState.absoluteEnd != -1)
 				{
@@ -168,11 +175,11 @@
 					if (range)
 					{
 						var linkString:String = defaultLinkText;
-						var linkEl:LinkElement = range.firstLeaf.getParentByType(LinkElement) as LinkElement;
-						if (linkEl != null)
+						_linkEl = range.firstLeaf.getParentByType(LinkElement) as LinkElement;
+						if (_linkEl != null)
 						{
-							var linkElStart:int = linkEl.getAbsoluteStart();
-							var linkElEnd:int = linkElStart + linkEl.textLength;
+							var linkElStart:int = _linkEl.getAbsoluteStart();
+							var linkElEnd:int = linkElStart + _linkEl.textLength;
 							if (linkElEnd < linkElStart)
 							{
 								var temp:int = linkElStart;
@@ -191,10 +198,10 @@
 
 							if ((beginRange == endRange) || (endRange <= linkElEnd))
 							{
-								linkString = LinkElement(linkEl).href;
+								linkString = LinkElement(_linkEl).href;
 							}
 						}
-						var newLinkSelected:Boolean = linkEl != null;
+						var newLinkSelected:Boolean = _linkEl != null;
 						if (_linkSelected != newLinkSelected)
 						{
 							_linkSelected = newLinkSelected;
@@ -210,6 +217,8 @@
 						lastRange = null;
 					}
 				}
+				
+				enabled = _textArea.selectionAnchorPosition != _textArea.selectionActivePosition || _linkSelected;
 			}
 
 			/**
