@@ -27,7 +27,6 @@ package com.piematrix.sparkRichTextEditor
 		{
 			super();
 			this.textFlow = new TextFlow; //Prevents a stack trace that happends when you try to access the textflow on click.
-			this.addEventListener(TextOperationEvent.CHANGE, updateHTMLText, false, int.MAX_VALUE);
 		}
 
 		[Bindable("change")]
@@ -201,15 +200,8 @@ package com.piematrix.sparkRichTextEditor
 		 */
 		private function handleChange(e:Event):void
 		{
-			this.dispatchEvent(e);
-		}
-
-		/**
-		 *  @private
-		 */
-		private function updateHTMLText(e:Event):void
-		{
 			_htmlTextChanged = true;
+			this.dispatchEvent(e);
 		}
 	}
 }
